@@ -3,12 +3,10 @@ import { useSafety } from '../../context/SafetyContext';
 import type { TimeOfDay } from '../../lib/types';
 
 export const TimeLens: React.FC = () => {
-  const { timeOfDay, setTimeOfDay } = useSafety();
+  const { timeOfDay, setTimeOfDay, liveCurrentTime } = useSafety();
 
   const times: { value: TimeOfDay; label: string; period: string }[] = [
-    { value: '18:00', label: '6:00 PM', period: 'Evening Commute' },
-    { value: '21:00', label: '9:00 PM', period: 'Post-Retail Shift' },
-    { value: '23:30', label: '11:30 PM', period: 'Late Night Window' },
+    { value: 'now', label: `NOW · ${liveCurrentTime}`, period: 'Live Local Time' },
   ];
 
   return (
@@ -19,7 +17,9 @@ export const TimeLens: React.FC = () => {
             Time Lens:
           </span>
           <span className="text-xs text-slate-700">
-            {timeOfDay === '18:00'
+            {timeOfDay === 'now'
+              ? `Live system departure time (${liveCurrentTime} Asia/Kolkata)`
+              : timeOfDay === '18:00'
               ? 'Peak commercial lighting & transit activity'
               : timeOfDay === '21:00'
               ? 'Retail closing window; municipal lamps active'

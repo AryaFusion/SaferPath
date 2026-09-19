@@ -1,4 +1,5 @@
 import type { RouteOption, TimeOfDay, HelpPoint, PhysicalReport } from '../../lib/types';
+import { mapTimeToFixtureKey } from '../../lib/timeUtils';
 
 export interface EvidenceSummary {
   lighting: string;
@@ -33,15 +34,17 @@ export function getContextSummary(
     };
   }
 
+  const effectiveKey = mapTimeToFixtureKey(timeOfDay);
+
   const lighting =
-    timeOfDay === '23:30'
+    effectiveKey === '23:30'
       ? `${route.lightingEvidence.split('&')[0].trim()} (Primary late-night illumination)`
       : route.lightingEvidence;
 
   const activity =
-    timeOfDay === '23:30'
+    effectiveKey === '23:30'
       ? 'Reduced commercial activity; transit corridor active'
-      : timeOfDay === '21:00'
+      : effectiveKey === '21:00'
       ? 'Moderate pedestrian footfall & open storefronts'
       : 'Active pedestrian traffic & commercial front illumination';
 
@@ -55,25 +58,13 @@ export function getContextSummary(
   };
 }
 
-export function getTimeTimeline(activeTime: TimeOfDay): TimeTimelineStep[] {
+export function getTimeTimeline(_activeTime: TimeOfDay, liveTime: string = '9:00 PM'): TimeTimelineStep[] {
   return [
     {
-      time: '18:00',
-      label: '6:00 PM',
-      observation: 'High pedestrian traffic and open storefront illumination.',
-      isCurrent: activeTime === '18:00',
-    },
-    {
-      time: '21:00',
-      label: '9:00 PM',
-      observation: 'Commercial activity begins to transition; transit plazas active.',
-      isCurrent: activeTime === '21:00',
-    },
-    {
-      time: '23:30',
-      label: '11:30 PM',
-      observation: 'Fewer recent observations available; primary context relies on municipal streetlamps and 24/7 help points.',
-      isCurrent: activeTime === '23:30',
+      time: 'now',
+      label: `NOW · ${liveTime}`,
+      observation: 'Live current departure time. Refreshes automatically with system clock.',
+      isCurrent: true,
     },
   ];
 }

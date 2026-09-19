@@ -253,9 +253,9 @@ export const MapLibreRouteMap: React.FC<MapLibreRouteMapProps> = ({
 
       {/* Fallback Banner Badge */}
       {isFallback && (
-        <div className="absolute left-3 top-3 z-20 bg-amber-500/90 text-slate-950 font-semibold px-2.5 py-0.5 rounded-md text-[10px] shadow-xs flex items-center gap-1">
-          <span>⚠️</span>
-          <span>Using demo route data</span>
+        <div className="absolute left-3 top-3 z-20 bg-slate-900/80 backdrop-blur-xs text-slate-300 font-medium px-2.5 py-1 rounded-md text-[10px] border border-slate-700/80 shadow-xs flex items-center gap-1.5 font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+          <span>Demo routing data</span>
         </div>
       )}
 

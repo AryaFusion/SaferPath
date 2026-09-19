@@ -25,6 +25,11 @@ export interface NormalizedRoute {
   source: 'valhalla' | 'fixture';
   whySummary: string;
   supportLevel: 'Stronger Contextual Support' | 'Mixed Context' | 'Caution Segment' | 'Limited Data' | 'Stale Evidence';
+  lightingEvidence?: string;
+  footfallEvidence?: string;
+  helpPointsCount?: number;
+  freshness?: string;
+  confidence?: 'High' | 'Moderate' | 'Limited';
 }
 
 export interface RoutingResult {

@@ -34,8 +34,8 @@ export const ContextBand: React.FC<ContextBandProps> = ({ level, className = '' 
 
 export const ConfidenceInline: React.FC<{ confidence: ContextConfidence }> = ({ confidence }) => {
   return (
-    <span className="text-xs font-mono-telemetry text-slate-500">
-      Confidence: <strong className="text-slate-800 font-semibold">{confidence}</strong>
+    <span className="text-xs text-[#64748B] font-mono">
+      Context availability: <strong className="text-[#172033] font-semibold">{confidence}</strong>
     </span>
   );
 };

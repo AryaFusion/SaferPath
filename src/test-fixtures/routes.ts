@@ -1,6 +1,6 @@
-import type { RouteOption, TimeOfDay } from '../lib/types';
+import type { RouteOption } from '../lib/types';
 
-export const FIXTURE_ROUTES_BY_TIME: Record<TimeOfDay, RouteOption[]> = {
+export const FIXTURE_ROUTES_BY_TIME: Record<'18:00' | '21:00' | '23:30', RouteOption[]> = {
   '18:00': [
     {
       id: 'route-1',

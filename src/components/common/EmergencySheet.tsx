@@ -64,7 +64,14 @@ export const EmergencySheet: React.FC<EmergencySheetProps> = ({ isOpen, onClose 
             {contacts.map((c) => (
               <div key={c.id} className="flex justify-between items-center text-xs p-2 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md">
                 <div>
-                  <span className="font-bold text-[#172033] text-xs">{c.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-[#172033] text-xs">{c.name}</span>
+                    {c.id.startsWith('c-') && (
+                      <span className="px-1.5 py-0.2 text-[9px] font-mono font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1] rounded">
+                        Demo contact
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[#64748B] block text-[10px] font-mono">{c.phone}</span>
                 </div>
                 <a href={`tel:${c.phone}`} className="px-2.5 py-1 bg-white hover:bg-[#EFF6FF] text-[#172033] hover:text-[#2563EB] font-medium text-[11px] rounded border border-[#DCE3EE] transition-colors">

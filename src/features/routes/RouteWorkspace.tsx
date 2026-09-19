@@ -3,7 +3,7 @@ import { useSafety } from '../../context/SafetyContext';
 import MapLibreRouteMap from '../../components/map/MapLibreRouteMap';
 import WhyThisRouteDrawer from '../../components/common/WhyThisRouteDrawer';
 import Button from '../../components/common/Button';
-import type { TimeOfDay, RouteOption } from '../../lib/types';
+import type { RouteOption } from '../../lib/types';
 import {
   ArrowLeftRight,
   Sun,
@@ -25,6 +25,8 @@ export const RouteWorkspace: React.FC = () => {
     destinationCoords,
     timeOfDay,
     setTimeOfDay,
+    liveCurrentTime,
+    selectedTimeDisplay,
     routes,
     normalizedRoutes,
     selectedRouteId,
@@ -40,11 +42,6 @@ export const RouteWorkspace: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
 
-  const times: { value: TimeOfDay; label: string }[] = [
-    { value: '18:00', label: '6:00 PM' },
-    { value: '21:00', label: '9:00 PM' },
-    { value: '23:30', label: '11:30 PM' },
-  ];
 
   const handleSwap = () => {
     const tempLoc = originLocation;
@@ -121,23 +118,13 @@ export const RouteWorkspace: React.FC = () => {
         <div className="lg:col-span-5 bg-white border border-[#DCE3EE] rounded-md p-2 flex items-center justify-between gap-2 overflow-x-auto">
           <span className="text-xs font-medium text-[#64748B] shrink-0">Travel time:</span>
 
-          <div className="flex items-center gap-1 shrink-0">
-            {times.map((item) => {
-              const isSelected = timeOfDay === item.value;
-              return (
-                <button
-                  key={item.value}
-                  onClick={() => setTimeOfDay(item.value)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-[#2563EB] text-white font-semibold'
-                      : 'text-[#64748B] hover:bg-[#EFF6FF] hover:text-[#2563EB]'
-                  }`}
-                >
-                  <span className="font-mono">{item.label}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setTimeOfDay('now')}
+              className="px-2.5 py-1 rounded text-xs font-medium bg-[#2563EB] text-white font-semibold shadow-xs whitespace-nowrap cursor-pointer"
+            >
+              <span className="font-mono font-bold">NOW · {liveCurrentTime}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -172,8 +159,8 @@ export const RouteWorkspace: React.FC = () => {
             <h3 className="text-xs font-bold text-[#172033] uppercase tracking-wider font-mono">
               Route options
             </h3>
-            <span className="text-[11px] font-mono text-[#64748B]">
-              {timeOfDay === '18:00' ? '6:00 PM' : timeOfDay === '21:00' ? '9:00 PM' : '11:30 PM'}
+            <span className="text-[11px] font-mono font-semibold text-[#2563EB]">
+              {timeOfDay === 'now' ? `NOW · ${liveCurrentTime}` : selectedTimeDisplay}
             </span>
           </div>
 
@@ -266,11 +253,12 @@ export const RouteWorkspace: React.FC = () => {
               }}
             >
               <Navigation className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span>Start walk on selected route</span>
+              <span>Start walk on {selectedRouteObj ? selectedRouteObj.name : 'selected route'}</span>
             </Button>
           </div>
         </div>
       </div>
+
 
       {/* How it Works Modal */}
       {showHowItWorksModal && (

@@ -1,4 +1,4 @@
-export type TimeOfDay = '18:00' | '21:00' | '23:30';
+export type TimeOfDay = 'now' | '18:00' | '21:00' | '23:30';
 
 export type ContextConfidence = 'High' | 'Moderate' | 'Limited';
 
@@ -60,6 +60,17 @@ export interface PhysicalReport {
   isAnonymous: boolean;
 }
 
+export type SavedPlaceType = 'Home' | 'College' | 'Work' | 'Custom';
+
+export interface SavedPlace {
+  id: string;
+  name: string;
+  label: SavedPlaceType;
+  address: string;
+  coordinates?: [number, number];
+  isDemo?: boolean;
+}
+
 export interface TrustedContact {
   id: string;
   name: string;
@@ -67,7 +78,10 @@ export interface TrustedContact {
   phone: string;
   sharesCheckIns: boolean;
   sharesETA: boolean;
+  isDemo?: boolean;
 }
+
+export type TripStatusType = 'Before trip' | 'In progress' | 'Completed' | 'Cancelled';
 
 export interface TripLogEntry {
   id: string;
@@ -80,11 +94,17 @@ export interface ActiveTrip {
   id: string;
   routeId: string;
   routeName: string;
+  origin: string;
+  destination: string;
+  travelTime: string;
   startedAt: string;
+  startedAtTimestamp: number;
+  endedAt?: string;
   durationMinutes: number;
   remainingDistanceKm: number;
-  status: 'In progress' | 'Completed' | 'Cancelled';
+  status: TripStatusType;
   checkInLogs: TripLogEntry[];
+  trustedContactId?: string;
 }
 
 export interface PrivacySettings {
