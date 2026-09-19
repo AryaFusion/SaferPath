@@ -1,6 +1,6 @@
 # SaferPath Backend
 
-The backend targets Python 3.14 and provides the BE-00 platform foundation only. Domain features such as routing, safety context, reports, help points, trips, and trusted contacts are intentionally not included.
+The backend targets Python 3.14 and provides the BE-00 platform foundation plus BE-03A's provider-independent route comparison domain.
 
 ## PowerShell setup
 
@@ -35,6 +35,64 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 Available system endpoints are `GET /`, `GET /v1/health`, `GET /v1/readiness`, and the OpenAPI UI at `/docs`.
 
+## Routing (BE-03A)
+
+`POST /v1/routes/compare` is the canonical traveller API. It accepts origin/destination coordinates, an IANA timezone, a local requested time, `departure` or `arrival` mode, `walking`, a route preference, and an idempotency key. A repeated idempotency key returns the original request and route alternatives without making duplicate request state. `route_requests` is a persistence/domain concept, not a second public endpoint.
+
+The response contains request time/preference context and explicit `provider_source: "fixture"`; each route exposes safe fixture metadata (`dataset: "mumbai-pilot-v1"`). It returns safe error envelopes for invalid requests, pilot-area coverage, unsupported modes, no route, unavailable/timeout providers, malformed provider results, and idempotency conflicts. The fixture is local, so it has no retries or fallback. Future external adapters must use server-owned allowlisted HTTPS configuration with bounded timeout/retry/backoff; clients never supply provider URLs and fixture fallback must be explicitly configured and labelled.
+
+The API uses a `RoutingProvider` boundary. `FixtureRoutingProvider` is the default and has no credentials or outbound calls; it deterministically returns three physical alternatives only when both points fall inside its configured Mumbai pilot bounds (`FIXTURE_PILOT_*`). It is not a general Mumbai routing service. Provider output is normalized before persistence. It rejects missing/degenerate/out-of-range geometry, overlarge geometry, non-positive metrics, duplicate segments, and non-contiguous ordering.
+
+Routes and segments are stored in PostGIS (`SRID 4326`). A segment's join key is the SHA-256 of its directed, six-decimal WGS84 coordinate sequence. That key is intentionally internal except for the segment identifier returned to route consumers, and is stable across compatible providers. Segment duration enables later expected-arrival calculations.
+
+Route requests retain geometry only until `expires_at` (currently seven days). The schema deliberately makes expiry queryable for a future deletion job. Request logging contains only method/path/status/timing; it never logs coordinates or provider error detail. Geometry is returned only in the direct route response needed to render the requested route, never as analytics/history.
+
+BE-03A does **not** implement a Safety Context Engine, safety score/classification, community aggregation, help-point ranking, active trips, or trusted contacts. BE-03B can add provider adapters and retention enforcement without changing the normalized domain contract.
+
+## Safety context (BE-04)
+
+`GET /v1/routes/{route_id}/context` evaluates stored route segments at their expected local traversal times: forward from a departure or backward from an arrival. It returns controlled contextual bands, coverage, confidence, source-specific freshness, source classes, and structured support/caution/unknown/stale explanations—never a safety score or safe/unsafe claim. Each evaluation is persisted as a `context_versions` record with model, feature, and rule versions.
+
+The engine combines astronomical daylight, stored normalized signals, PostGIS-matched OSM infrastructure/activity evidence, Open-Meteo's bounded nearest forecast slot, and clearly fixture-labelled mapped infrastructure/activity context. It returns only normalized evidence, never provider payloads or private coordinates. Weather is short-lived; mapped infrastructure has a longer expiry; expired evidence is excluded. Provider failures, no spatial match, and missing data reduce coverage/confidence to limited or unknown evidence; they never create negative evidence or a caution band by themselves. Mapped activity context is schedule context, not live pedestrian footfall. Public weather and OSM/Overpass services can be unavailable or rate-limited, so live results are best-effort rather than guarantees.
+
+## Community report aggregation (BE-05B)
+
+Reports are structured evidence, not public warnings or safety scores. Internal moderation transitions are recorded without moderator identity. Report pairs are canonically classified using their segment, category, and observed-time relationship: the same segment/category within `REPORT_CLUSTER_MINUTES` (default 30) is `DUPLICATE`; incompatible categories in that window are `CONFLICTING`; same-segment evidence within twice that window is `RELATED`; other pairs are `DISTINCT`. Duplicate pairs retain one canonical representative, while distinct internal sources can corroborate. Conflicts remain controlled uncertainty evidence rather than an unsafe classification.
+
+Reports may be associated internally to route segments from a coarse SRID-4326 point using PostGIS `ST_DWithin` and `REPORT_SPATIAL_ASSOCIATION_METERS` (default 150). Coarse geometry, source/session identifiers, relationship rationale, and moderation actions never appear in report or context API responses. Only accepted public reports observed by the segment time and not expired can contribute normalized community-report evidence.
+
+## Evidence storage and privacy (BE-05C)
+
+Evidence is optional and is always created as `RESTRICTED_EVIDENCE`; it never enters public route context. The server issues a short-lived, opaque upload authorization for a server-generated object reference. Only JPEG, PNG, WebP, and PDF declarations are accepted, with signature validation and `EVIDENCE_MAX_BYTES` (10 MiB by default). Content is quarantined and scanned before acceptance; unknown scanner outcomes fail closed. The local deterministic adapter is a test/development boundary, not production object storage or malware protection.
+
+Evidence records have configured retention (`EVIDENCE_RETENTION_DAYS`, default 30) and logical deletion makes them inaccessible immediately while preserving reference-only lifecycle audit events. Original filenames, EXIF/GPS, raw content, storage keys, upload tokens, and session/source identifiers are neither retained as public metadata nor returned by APIs. Ownership follows the existing session boundary. Production deployments must supply durable object storage and a real malware scanner behind the same interface.
+
+## Help points (BE-06)
+
+`GET /v1/help-points/nearby` performs PostGIS geography lookup against public infrastructure within a bounded radius. Categories are controlled: police, hospital, clinic, pharmacy, staffed transit points, security desks, public help desks, and verified partner locations. Help points use public infrastructure coordinates; private user and evidence locations are never mixed into this dataset.
+
+Verification is explicit: unverified, verified, stale, expired, or suspended. A help point only contributes contextual support when it is verified, unexpired, and open at the segment's expected local time. Structured weekday hours support 24-hour and overnight operation; unknown hours remain unknown. Accessibility fields are structured and unknown values are not inferred. Sponsorship, where disclosed, is presented as metadata only and never influences deterministic nearby ordering or contextual ranking. Partner references and verifier details remain internal until a real tenant/administrative authorization boundary exists.
+
+Each server-side verification transition writes a reference-only history record with the previous state, new state, source, verification timestamp, and expiry. There is intentionally no public verification-administration endpoint until a real administrator/tenant authorization boundary is available.
+
+Defaults: `HELP_POINT_NEARBY_MAX_RADIUS_METERS=5000`, `HELP_POINT_ASSOCIATION_METERS=150`, and `HELP_POINT_STALE_DAYS=30`.
+
+## Active trips (BE-07)
+
+`POST /v1/trips` starts an active trip for a route owned by the supplied session. It requires a distinct active-trip consent reference/version and defaults to `STATUS_ONLY`; `LOCATION` is opt-in and is required before location-bearing `TRIP_UPDATED` events are accepted. The service retains only a redacted processing outcome (`on_route` or `outside_threshold`) rather than location coordinates or a historical trail.
+
+Trip states are `PLANNED`, `ACTIVE`, `CHECKIN_PENDING`, `DEVIATED`, `MISSED_CHECKIN`, `STOPPED`, `COMPLETED`, and `EXPIRED`, with server-owned transitions. `POST /v1/trips/{trip_id}/events`, `/check-in`, and `/stop` all require ownership and idempotency keys. A revoked sharing grant immediately prevents further location processing and stops the trip. A deviation only means that a transient location fell outside the configured selected-route threshold; it makes no safety, danger, emergency, crime, or notification claim.
+
+`GET /v1/trips/{trip_id}` is the polling fallback. `GET /v1/trips/{trip_id}/stream` emits bounded, redacted SSE replay followed by a heartbeat; it honors `Last-Event-ID` and the same session authorization. Internal durable `job_runs` schedule check-in prompt, missed-check-in, expiry, and retention work. Jobs are idempotent by trip/job key and deliberately create event boundaries only—no trusted-contact delivery is claimed or attempted.
+
+Defaults: `TRIP_RETENTION_DAYS=7`, `TRIP_DEVIATION_METERS=75`, `TRIP_CHECKIN_PROMPT_MINUTES_BEFORE_ARRIVAL=10`, `TRIP_CHECKIN_GRACE_MINUTES=10`, `TRIP_STREAM_REPLAY_LIMIT=50`, and `TRIP_STALE_MINUTES=15`.
+
+## Emergency handoff (BE-10)
+
+`POST /v1/emergency/handoff` is an explicit user-initiated escalation boundary for an active owned trip. It is deliberately separate from deviation, missed check-in, weather, reports, and Context Engine bands: none of those conditions creates a handoff automatically. The supported local methods are `OFFICIAL_CALL`, `OFFICIAL_DEEP_LINK`, and `APPROVED_INTEGRATION`. Call/deep-link guidance can progress to initiated/opened; this records that the app presented or opened an official mechanism, not that an emergency service received a request. No approved external provider is configured, so integration requests persist as `UNAVAILABLE`; no confirmation is fabricated.
+
+Handoffs are idempotent per trip/key, have deterministic expiry and retention, and write redacted trip events for polling/SSE. Existing trusted-contact grants receive only the existing scope-filtered event stream; no location history, provider credentials, private reports, or evidence is added to a handoff. `EMERGENCY_HANDOFF_TTL_MINUTES=60` and `EMERGENCY_HANDOFF_RETENTION_DAYS=30` are development defaults.
+
 ## Tests and lint
 
 ```powershell
@@ -44,3 +102,23 @@ ruff check .
 ```
 
 The local `.env` is ignored by Git. Use environment variables or a deployment secret manager for non-development credentials.
+
+## Identity and release configuration
+
+Development authentication uses a passwordless one-time-code fixture boundary. Codes are HMAC-protected, short-lived, attempt-bounded, single-use, and establish a rotating, hashed server session token. Fixture delivery is rejected in production. Production requires `AUTH_SECRET`, explicit HTTPS CORS/trusted hosts, and Redis rate limiting when `MULTI_INSTANCE=true`; local rate limiting is only suitable for development/single-instance operation.
+
+## Analytics, audit, and experiments (BE-11)
+
+`analytics_events` contains only allowlisted product/operational event types and bounded dimensions; it is not a request log. Current allowlisted types are exposed to authenticated operators at `GET /v1/analytics/allowlist`. Ingestion requires an explicit `analytics_consent: true`; absent or withdrawn consent produces no event. Subject references are transformed with a purpose-specific HMAC (`ANALYTICS_SUBJECT_SECRET`) before persistence, and raw user/session identifiers, coordinates, tokens, text, evidence, and request bodies are rejected by design.
+
+`GET /v1/analytics/summary` is an aggregate-only, 90-day bounded operator endpoint protected by `X-Analytics-Admin` matching `ANALYTICS_ADMIN_TOKEN`. It suppresses counts below `ANALYTICS_MINIMUM_COUNT` and records an `ADMIN_ANALYTICS_VIEWED` audit event. Audit data is separate from analytics and records redacted authorization/governance metadata only.
+
+Analytics events expire after `ANALYTICS_RETENTION_DAYS`. `AnalyticsService.cleanup` is an idempotent `job_runs`-backed retention job and deletes only expired analytics events, never audits. Analytics is optional/best-effort: core route, context, trip, and emergency behavior must not depend on a successful analytics write.
+
+Completed privacy-deletion processing calls `AnalyticsService.delete_subject_events` with the applicable account/session reference and removes only linkable, optional events under this module's ownership. Events collected without a subject reference are genuinely anonymous and cannot be reconstructed or selectively linked; audit events are independently retained for governance.
+
+Experiments have versioned keys, active windows, weighted variants, and durable assignments. Assignment is deterministic from a keyed HMAC of experiment key/version and the privacy-safe subject scope; existing assignments prevent reallocation. Experiments are limited to presentation/configuration and must never alter consent, authorization, safety-context semantics, trusted-contact access, moderation, retention, or emergency truthfulness.
+
+Structured request logs retain correlation IDs and safe method/path/status/duration fields. Do not add identifiers, coordinates, route geometry, bodies, tokens, arbitrary text, or unbounded metric labels to logs or metrics.
+
+The built-in `SafeMetrics` collector records HTTP counts using only method, routed path template, and status class. It has no public export endpoint; production metric forwarding belongs on a private operator boundary. The collector rejects arbitrary label names and oversized label values.

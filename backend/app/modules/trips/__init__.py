@@ -1,0 +1,1 @@
+"""Active-trip domain."""

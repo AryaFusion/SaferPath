@@ -14,10 +14,18 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.auth import router as auth_router
+from app.api.v1.context import router as context_router
 from app.api.v1.diagnostics import router as diagnostics_router
 from app.api.v1.health import router as health_router
+from app.api.v1.help_points import router as help_points_router
+from app.api.v1.reports import router as reports_router
+from app.api.v1.routing import router as routing_router
+from app.api.v1.trips import router as trips_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.core.metrics import metrics
 from app.schemas.errors import ErrorEnvelope
 
 settings = get_settings()
@@ -42,12 +50,23 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
         finally:
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            route = request.scope.get("route")
+            route_template = getattr(route, "path", "unmatched")
+            status_code = getattr(locals().get("response"), "status_code", 500)
             logger.info(
                 "request_complete",
                 method=request.method,
-                path=request.url.path,
-                status=getattr(locals().get("response"), "status_code", 500),
+                route=route_template,
+                status=status_code,
                 duration_ms=duration_ms,
+            )
+            metrics.increment(
+                "http_requests_total",
+                {
+                    "method": request.method,
+                    "route": route_template,
+                    "status_class": f"{status_code // 100}xx",
+                },
             )
             structlog.contextvars.clear_contextvars()
         response.headers["X-Request-ID"] = request_id
@@ -94,7 +113,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Request-ID"],
+    allow_headers=["Content-Type", "X-Request-ID", "X-Analytics-Admin", "X-Subject-Reference"],
 )
 app.add_middleware(RequestSizeMiddleware)
 app.add_middleware(RequestContextMiddleware)
@@ -106,6 +125,7 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
     response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     return response
 
@@ -138,4 +158,11 @@ def root() -> dict[str, str]:
 
 
 app.include_router(health_router, prefix=settings.api_v1_prefix)
+app.include_router(help_points_router, prefix=settings.api_v1_prefix)
 app.include_router(diagnostics_router, prefix=settings.api_v1_prefix)
+app.include_router(context_router, prefix=settings.api_v1_prefix)
+app.include_router(routing_router, prefix=settings.api_v1_prefix)
+app.include_router(reports_router, prefix=settings.api_v1_prefix)
+app.include_router(trips_router, prefix=settings.api_v1_prefix)
+app.include_router(analytics_router, prefix=settings.api_v1_prefix)
+app.include_router(auth_router, prefix=settings.api_v1_prefix)

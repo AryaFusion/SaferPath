@@ -1,6 +1,6 @@
-import React from 'react';
-import { useSafety } from '../../context/SafetyContext';
-import type { AppRoute } from '../../lib/routes';
+import React from "react";
+import { useSafety } from "../../context/SafetyContext";
+import type { AppRoute } from "../../lib/routes";
 import {
   MapPin,
   FileText,
@@ -11,23 +11,68 @@ import {
   Settings,
   ShieldCheck,
   Shield,
-} from 'lucide-react';
+} from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const { tab, setTab } = useSafety();
 
-  const mainNavItems: { path: AppRoute; label: string; icon: React.ReactNode }[] = [
-    { path: '/route', label: 'Plan a route', icon: <MapPin className="w-4 h-4" /> },
-    { path: '/evidence', label: 'Evidence', icon: <FileText className="w-4 h-4" /> },
-    { path: '/help', label: 'Help nearby', icon: <MapPinned className="w-4 h-4" /> },
-    { path: '/reports', label: 'Reports', icon: <ClipboardList className="w-4 h-4" /> },
-    { path: '/trip', label: 'Active trip', icon: <Navigation className="w-4 h-4" /> },
+  const mainNavItems: {
+    path: AppRoute;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      path: "/route",
+      label: "Plan a route",
+      icon: <MapPin className="w-4 h-4" />,
+    },
+    {
+      path: "/evidence",
+      label: "Evidence",
+      icon: <FileText className="w-4 h-4" />,
+    },
+    {
+      path: "/help",
+      label: "Help nearby",
+      icon: <MapPinned className="w-4 h-4" />,
+    },
+    {
+      path: "/reports",
+      label: "Reports",
+      icon: <ClipboardList className="w-4 h-4" />,
+    },
+    {
+      path: "/trip",
+      label: "Active trip",
+      icon: <Navigation className="w-4 h-4" />,
+    },
   ];
 
-  const secondaryNavItems: { path: AppRoute; label: string; icon: React.ReactNode }[] = [
-    { path: '/saved-places', label: 'Saved places', icon: <Bookmark className="w-4 h-4" /> },
-    { path: '/settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
-    { path: '/privacy', label: 'Privacy', icon: <ShieldCheck className="w-4 h-4" /> },
+  const secondaryNavItems: {
+    path: AppRoute;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      path: "/saved-places",
+      label: "Saved places",
+      icon: <Bookmark className="w-4 h-4" />,
+    },
+    {
+      path: "/settings",
+      label: "Settings",
+      icon: <Settings className="w-4 h-4" />,
+    },
+    {
+      path: "/privacy",
+      label: "Privacy",
+      icon: <ShieldCheck className="w-4 h-4" />,
+    },
+    {
+      path: "/landing",
+      label: "About SaferPath",
+      icon: <Shield className="w-4 h-4" />,
+    },
   ];
 
   return (
@@ -35,7 +80,7 @@ export const Sidebar: React.FC = () => {
       {/* Top Brand Logo & Navigation */}
       <div className="space-y-5">
         <button
-          onClick={() => setTab('/route')}
+          onClick={() => setTab("/route")}
           className="flex items-center gap-2.5 px-2 py-1 text-left cursor-pointer group rounded-md focus-visible-ring"
         >
           <div className="w-6 h-6 rounded-md bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs shrink-0">
@@ -61,14 +106,18 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setTab(item.path)}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer text-left focus-visible-ring ${
                   isActive
-                    ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold border-l-2 border-[#2563EB]'
-                    : 'text-[#64748B] hover:text-[#172033] hover:bg-[#F7FAFF]'
+                    ? "bg-[#EFF6FF] text-[#2563EB] font-semibold border-l-2 border-[#2563EB]"
+                    : "text-[#64748B] hover:text-[#172033] hover:bg-[#F7FAFF]"
                 }`}
               >
-                <span className={`shrink-0 flex items-center justify-center ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`}>
+                <span
+                  className={`shrink-0 flex items-center justify-center ${isActive ? "text-[#2563EB]" : "text-[#64748B]"}`}
+                >
                   {item.icon}
                 </span>
-                <span className="inline-flex items-center leading-none">{item.label}</span>
+                <span className="inline-flex items-center leading-none">
+                  {item.label}
+                </span>
               </button>
             );
           })}
@@ -83,14 +132,18 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setTab(item.path)}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer text-left focus-visible-ring ${
                   isActive
-                    ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold border-l-2 border-[#2563EB]'
-                    : 'text-[#64748B] hover:text-[#172033] hover:bg-[#F7FAFF]'
+                    ? "bg-[#EFF6FF] text-[#2563EB] font-semibold border-l-2 border-[#2563EB]"
+                    : "text-[#64748B] hover:text-[#172033] hover:bg-[#F7FAFF]"
                 }`}
               >
-                <span className={`shrink-0 flex items-center justify-center ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`}>
+                <span
+                  className={`shrink-0 flex items-center justify-center ${isActive ? "text-[#2563EB]" : "text-[#64748B]"}`}
+                >
                   {item.icon}
                 </span>
-                <span className="inline-flex items-center leading-none">{item.label}</span>
+                <span className="inline-flex items-center leading-none">
+                  {item.label}
+                </span>
               </button>
             );
           })}

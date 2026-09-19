@@ -29,3 +29,6 @@ backend/.ruff_cache/
 *.njsproj
 *.sln
 *.sw?
+
+# Python packaging artifacts
+*.egg-info/

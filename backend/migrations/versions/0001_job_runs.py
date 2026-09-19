@@ -3,6 +3,7 @@
 Revision ID: 0001_job_runs
 Revises:
 """
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql

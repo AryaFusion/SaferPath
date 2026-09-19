@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { useSafety } from '../../context/SafetyContext';
-import Button from '../../components/common/Button';
-import type { SavedPlace, SavedPlaceType, TrustedContact } from '../../lib/types';
+import React, { useState } from "react";
+import { useSafety } from "../../context/SafetyContext";
+import Button from "../../components/common/Button";
+import type {
+  SavedPlace,
+  SavedPlaceType,
+  TrustedContact,
+} from "../../lib/types";
 import {
   MapPin,
   Plus,
@@ -18,7 +22,7 @@ import {
   AlertTriangle,
   Info,
   Navigation,
-} from 'lucide-react';
+} from "lucide-react";
 
 export const ContactsView: React.FC = () => {
   const {
@@ -40,19 +44,23 @@ export const ContactsView: React.FC = () => {
   const [editingPlace, setEditingPlace] = useState<SavedPlace | null>(null);
   const [deletingPlaceId, setDeletingPlaceId] = useState<string | null>(null);
 
-  const [placeName, setPlaceName] = useState('');
-  const [placeLabel, setPlaceLabel] = useState<SavedPlaceType>('Home');
-  const [placeAddress, setPlaceAddress] = useState('');
+  const [placeName, setPlaceName] = useState("");
+  const [placeLabel, setPlaceLabel] = useState<SavedPlaceType>("Home");
+  const [placeAddress, setPlaceAddress] = useState("");
   const [placeFormError, setPlaceFormError] = useState<string | null>(null);
 
   // Modal / Form States for Trusted Contacts
   const [showAddContactModal, setShowAddContactModal] = useState(false);
-  const [editingContact, setEditingContact] = useState<TrustedContact | null>(null);
-  const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
+  const [editingContact, setEditingContact] = useState<TrustedContact | null>(
+    null,
+  );
+  const [deletingContactId, setDeletingContactId] = useState<string | null>(
+    null,
+  );
 
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [contactRelationship, setContactRelationship] = useState('Family');
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactRelationship, setContactRelationship] = useState("Family");
   const [contactFormError, setContactFormError] = useState<string | null>(null);
 
   // Success Feedback Toast
@@ -67,9 +75,9 @@ export const ContactsView: React.FC = () => {
   // SAVED PLACES HANDLERS
   // ---------------------------------------------------------------------------
   const handleOpenAddPlace = () => {
-    setPlaceName('');
-    setPlaceLabel('Home');
-    setPlaceAddress('');
+    setPlaceName("");
+    setPlaceLabel("Home");
+    setPlaceAddress("");
     setPlaceFormError(null);
     setShowAddPlaceModal(true);
   };
@@ -90,7 +98,7 @@ export const ContactsView: React.FC = () => {
     const trimmedAddress = placeAddress.trim();
 
     if (!trimmedName || !trimmedAddress) {
-      setPlaceFormError('Please fill in both place name and address.');
+      setPlaceFormError("Please fill in both place name and address.");
       return;
     }
 
@@ -98,11 +106,13 @@ export const ContactsView: React.FC = () => {
       (p) =>
         p.id !== editingPlace?.id &&
         p.name.toLowerCase() === trimmedName.toLowerCase() &&
-        p.address.toLowerCase() === trimmedAddress.toLowerCase()
+        p.address.toLowerCase() === trimmedAddress.toLowerCase(),
     );
 
     if (isDuplicate) {
-      setPlaceFormError('A saved place with this name and address already exists.');
+      setPlaceFormError(
+        "A saved place with this name and address already exists.",
+      );
       return;
     }
 
@@ -124,15 +134,15 @@ export const ContactsView: React.FC = () => {
       setShowAddPlaceModal(false);
     }
 
-    setPlaceName('');
-    setPlaceAddress('');
+    setPlaceName("");
+    setPlaceAddress("");
   };
 
   const handleConfirmDeletePlace = () => {
     if (!deletingPlaceId) return;
     const target = savedPlaces.find((p) => p.id === deletingPlaceId);
     deleteSavedPlace(deletingPlaceId);
-    triggerToast(`Saved place "${target?.name || 'Place'}" deleted.`);
+    triggerToast(`Saved place "${target?.name || "Place"}" deleted.`);
     setDeletingPlaceId(null);
   };
 
@@ -140,9 +150,9 @@ export const ContactsView: React.FC = () => {
   // TRUSTED CONTACTS HANDLERS
   // ---------------------------------------------------------------------------
   const handleOpenAddContact = () => {
-    setContactName('');
-    setContactPhone('');
-    setContactRelationship('Family');
+    setContactName("");
+    setContactPhone("");
+    setContactRelationship("Family");
     setContactFormError(null);
     setShowAddContactModal(true);
   };
@@ -163,7 +173,7 @@ export const ContactsView: React.FC = () => {
     const trimmedPhone = contactPhone.trim();
 
     if (!trimmedName || !trimmedPhone) {
-      setContactFormError('Please enter both contact name and phone number.');
+      setContactFormError("Please enter both contact name and phone number.");
       return;
     }
 
@@ -187,26 +197,26 @@ export const ContactsView: React.FC = () => {
       setShowAddContactModal(false);
     }
 
-    setContactName('');
-    setContactPhone('');
+    setContactName("");
+    setContactPhone("");
   };
 
   const handleConfirmDeleteContact = () => {
     if (!deletingContactId) return;
     const target = contacts.find((c) => c.id === deletingContactId);
     removeContact(deletingContactId);
-    triggerToast(`Contact "${target?.name || 'Contact'}" removed.`);
+    triggerToast(`Contact "${target?.name || "Contact"}" removed.`);
     setDeletingContactId(null);
   };
 
   // Category Icon Resolver
   const getPlaceIcon = (label: SavedPlaceType) => {
     switch (label) {
-      case 'Home':
+      case "Home":
         return <Home className="w-4 h-4 text-[#2563EB]" />;
-      case 'Work':
+      case "Work":
         return <Briefcase className="w-4 h-4 text-[#2563EB]" />;
-      case 'College':
+      case "College":
         return <GraduationCap className="w-4 h-4 text-[#2563EB]" />;
       default:
         return <Bookmark className="w-4 h-4 text-[#2563EB]" />;
@@ -240,7 +250,8 @@ export const ContactsView: React.FC = () => {
           Saved places & trusted contacts
         </h1>
         <p className="text-xs text-[#64748B]">
-          Manage frequent origin/destination locations and trusted check-in contacts for active walks.
+          Manage frequent origin/destination locations and trusted check-in
+          contacts for active walks.
         </p>
       </div>
 
@@ -281,7 +292,9 @@ export const ContactsView: React.FC = () => {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       {/* Primary Name */}
-                      <span className="font-bold text-[#172033] text-sm">{sp.name}</span>
+                      <span className="font-bold text-[#172033] text-sm">
+                        {sp.name}
+                      </span>
                       {/* Label Category Tag */}
                       <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F5F7FB] text-[#172033] border border-[#DCE3EE]">
                         {sp.label}
@@ -294,7 +307,9 @@ export const ContactsView: React.FC = () => {
                       )}
                     </div>
                     {/* Secondary Address */}
-                    <span className="text-xs text-[#64748B] block">{sp.address}</span>
+                    <span className="text-xs text-[#64748B] block">
+                      {sp.address}
+                    </span>
                   </div>
                 </div>
 
@@ -315,7 +330,7 @@ export const ContactsView: React.FC = () => {
                     <Navigation className="w-3.5 h-3.5 text-[#2563EB]" />
                     <span>Use as destination</span>
                   </button>
-                  
+
                   {/* Secondary Icon Actions */}
                   <button
                     onClick={() => handleOpenEditPlace(sp)}
@@ -343,9 +358,12 @@ export const ContactsView: React.FC = () => {
               <Bookmark className="w-4 h-4" />
             </div>
             <div className="space-y-0.5">
-              <h3 className="text-xs font-bold text-[#172033]">No saved places</h3>
+              <h3 className="text-xs font-bold text-[#172033]">
+                No saved places
+              </h3>
               <p className="text-xs text-[#64748B] max-w-sm mx-auto">
-                Save frequently used places to plan trips faster without re-typing addresses.
+                Save frequently used places to plan trips faster without
+                re-typing addresses.
               </p>
             </div>
             <Button variant="primary" size="sm" onClick={handleOpenAddPlace}>
@@ -364,7 +382,9 @@ export const ContactsView: React.FC = () => {
       <div className="space-y-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#DCE3EE] pb-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-[#172033]">Trusted contacts</h2>
+            <h2 className="text-sm font-bold text-[#172033]">
+              Trusted contacts
+            </h2>
             <span className="px-2 py-0.5 text-[11px] font-medium bg-[#F5F7FB] text-[#64748B] border border-[#DCE3EE] rounded">
               {contacts.length} contacts
             </span>
@@ -383,7 +403,8 @@ export const ContactsView: React.FC = () => {
         <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md text-xs text-[#64748B] flex items-start gap-2">
           <Info className="w-3.5 h-3.5 text-[#2563EB] shrink-0 mt-0.5" />
           <p className="text-[11px] leading-relaxed">
-            Preloaded contacts are sample fixture entries for demonstration. Real contacts added by you are saved locally in your browser.
+            Preloaded contacts are sample fixture entries for demonstration.
+            Real contacts added by you are saved locally in your browser.
           </p>
         </div>
 
@@ -391,8 +412,9 @@ export const ContactsView: React.FC = () => {
         {contacts.length > 0 ? (
           <div className="bg-white border border-[#DCE3EE] rounded-md divide-y divide-[#DCE3EE]">
             {contacts.map((c) => {
-              const isCurrentTripContact = activeTrip?.trustedContactId === c.id;
-              const isDemo = c.isDemo || c.id.startsWith('c-');
+              const isCurrentTripContact =
+                activeTrip?.trustedContactId === c.id;
+              const isDemo = c.isDemo || c.id.startsWith("c-");
               return (
                 <div
                   key={c.id}
@@ -406,7 +428,9 @@ export const ContactsView: React.FC = () => {
                     <div className="space-y-0.5">
                       <div className="flex flex-wrap items-center gap-2">
                         {/* Primary Name */}
-                        <span className="font-bold text-[#172033] text-sm">{c.name}</span>
+                        <span className="font-bold text-[#172033] text-sm">
+                          {c.name}
+                        </span>
                         {/* Secondary Relationship */}
                         <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F5F7FB] text-[#172033] border border-[#DCE3EE]">
                           {c.relationship}
@@ -424,7 +448,9 @@ export const ContactsView: React.FC = () => {
                         )}
                       </div>
                       {/* Secondary Phone Number */}
-                      <span className="text-xs font-mono text-[#64748B] block">{c.phone}</span>
+                      <span className="text-xs font-mono text-[#64748B] block">
+                        {c.phone}
+                      </span>
                     </div>
                   </div>
 
@@ -459,9 +485,12 @@ export const ContactsView: React.FC = () => {
               <UserPlus className="w-4 h-4" />
             </div>
             <div className="space-y-0.5">
-              <h3 className="text-xs font-bold text-[#172033]">No trusted contacts</h3>
+              <h3 className="text-xs font-bold text-[#172033]">
+                No trusted contacts
+              </h3>
               <p className="text-xs text-[#64748B] max-w-sm mx-auto">
-                Add trusted contacts to enable walk progress sharing and non-emergency check-in updates.
+                Add trusted contacts to enable walk progress sharing and
+                non-emergency check-in updates.
               </p>
             </div>
             <Button variant="primary" size="sm" onClick={handleOpenAddContact}>
@@ -470,6 +499,82 @@ export const ContactsView: React.FC = () => {
             </Button>
           </div>
         )}
+      </div>
+
+      <hr className="border-[#DCE3EE]" />
+
+      {/* ========================================================================= */}
+      {/* SECTION 3: TRIP SHARING GRANTS (BE-14)                                    */}
+      {/* ========================================================================= */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#DCE3EE] pb-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-[#172033]">
+                Trip sharing grants
+              </h2>
+              <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/30 rounded">
+                BE-14 Scope Controlled
+              </span>
+            </div>
+            <p className="text-[11px] text-[#64748B] mt-0.5">
+              Issue temporary, scope-restricted access grants to trusted
+              contacts for your journeys.
+            </p>
+          </div>
+        </div>
+
+        {/* Sharing Policy Note */}
+        <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md text-xs text-[#64748B] space-y-1">
+          <span className="font-bold text-[#172033] block">
+            Important architectural rule:
+          </span>
+          <p className="text-[11px] leading-relaxed">
+            Trusted contacts are recipients of scoped trip telemetry grants—they
+            are <em>never</em> application roles or administrative users.
+            Authentication integration (BE-01) is deferred, so grants are
+            currently session-scoped.
+          </p>
+        </div>
+
+        {/* Active Sharing Grants Display */}
+        <div className="bg-white border border-[#DCE3EE] rounded-md p-4 space-y-3">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-bold text-[#172033]">
+              Available sharing scopes:
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+            <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-1">
+              <span className="font-bold text-[#2563EB] font-mono block">
+                STATUS_ONLY (Default)
+              </span>
+              <p className="text-[#64748B] text-[11px]">
+                Shares only departure, ETA, and "I'm OK" check-in status. Masked
+                from seeing exact coordinates.
+              </p>
+            </div>
+            <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-1">
+              <span className="font-bold text-amber-700 font-mono block">
+                LOCATION
+              </span>
+              <p className="text-[#64748B] text-[11px]">
+                Shares recent waypoint check-in locations and destination
+                coordinates with the designated contact.
+              </p>
+            </div>
+            <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-1">
+              <span className="font-bold text-teal-800 font-mono block">
+                TRIP_CONTEXT
+              </span>
+              <p className="text-[#64748B] text-[11px]">
+                Full route corridor context including lighting, footfall
+                telemetry, and assistance points.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -488,8 +593,11 @@ export const ContactsView: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase text-[#2563EB] font-bold block">
                   Saved place configuration
                 </span>
-                <h3 id="place-modal-title" className="text-base font-bold text-[#172033]">
-                  {editingPlace ? 'Edit saved place' : 'Add new saved place'}
+                <h3
+                  id="place-modal-title"
+                  className="text-base font-bold text-[#172033]"
+                >
+                  {editingPlace ? "Edit saved place" : "Add new saved place"}
                 </h3>
               </div>
               <button
@@ -531,7 +639,9 @@ export const ContactsView: React.FC = () => {
                 </label>
                 <select
                   value={placeLabel}
-                  onChange={(e) => setPlaceLabel(e.target.value as SavedPlaceType)}
+                  onChange={(e) =>
+                    setPlaceLabel(e.target.value as SavedPlaceType)
+                  }
                   className="w-full px-3 py-2 bg-white border border-[#DCE3EE] rounded-md text-xs text-[#172033] focus-visible-ring"
                 >
                   <option value="Home">Home</option>
@@ -567,7 +677,7 @@ export const ContactsView: React.FC = () => {
                   Cancel
                 </button>
                 <Button type="submit" variant="primary" size="sm">
-                  {editingPlace ? 'Update place' : 'Save place'}
+                  {editingPlace ? "Update place" : "Save place"}
                 </Button>
               </div>
             </form>
@@ -587,7 +697,10 @@ export const ContactsView: React.FC = () => {
         >
           <div className="w-full max-w-md bg-white border border-[#DCE3EE] rounded-md shadow-lg p-5 space-y-4 animate-fadeIn">
             <div className="space-y-1">
-              <h3 id="delete-place-title" className="text-base font-bold text-[#172033]">
+              <h3
+                id="delete-place-title"
+                className="text-base font-bold text-[#172033]"
+              >
                 Delete this saved place?
               </h3>
               <p className="text-xs text-[#64748B]">
@@ -629,8 +742,13 @@ export const ContactsView: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase text-[#2563EB] font-bold block">
                   Trusted contact configuration
                 </span>
-                <h3 id="contact-modal-title" className="text-base font-bold text-[#172033]">
-                  {editingContact ? 'Edit trusted contact' : 'Add new trusted contact'}
+                <h3
+                  id="contact-modal-title"
+                  className="text-base font-bold text-[#172033]"
+                >
+                  {editingContact
+                    ? "Edit trusted contact"
+                    : "Add new trusted contact"}
                 </h3>
               </div>
               <button
@@ -709,7 +827,7 @@ export const ContactsView: React.FC = () => {
                   Cancel
                 </button>
                 <Button type="submit" variant="primary" size="sm">
-                  {editingContact ? 'Update contact' : 'Save contact'}
+                  {editingContact ? "Update contact" : "Save contact"}
                 </Button>
               </div>
             </form>
@@ -729,11 +847,15 @@ export const ContactsView: React.FC = () => {
         >
           <div className="w-full max-w-md bg-white border border-[#DCE3EE] rounded-md shadow-lg p-5 space-y-4 animate-fadeIn">
             <div className="space-y-1">
-              <h3 id="delete-contact-title" className="text-base font-bold text-[#172033]">
+              <h3
+                id="delete-contact-title"
+                className="text-base font-bold text-[#172033]"
+              >
                 Delete this trusted contact?
               </h3>
               <p className="text-xs text-[#64748B]">
-                This will revoke access for this contact from walk check-ins and emergency dialing sheets.
+                This will revoke access for this contact from walk check-ins and
+                emergency dialing sheets.
               </p>
             </div>
 

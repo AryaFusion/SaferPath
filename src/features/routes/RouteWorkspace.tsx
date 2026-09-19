@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useSafety } from '../../context/SafetyContext';
-import MapLibreRouteMap from '../../components/map/MapLibreRouteMap';
-import WhyThisRouteDrawer from '../../components/common/WhyThisRouteDrawer';
-import Button from '../../components/common/Button';
-import type { RouteOption } from '../../lib/types';
+import React, { useState } from "react";
+import { useSafety } from "../../context/SafetyContext";
+import MapLibreRouteMap from "../../components/map/MapLibreRouteMap";
+import WhyThisRouteDrawer from "../../components/common/WhyThisRouteDrawer";
+import Button from "../../components/common/Button";
+import { ContextBand } from "../../components/common/ContextBand";
+import type { RouteOption } from "../../lib/types";
 import {
   ArrowLeftRight,
   Sun,
@@ -13,7 +14,9 @@ import {
   Info,
   ChevronRight,
   Navigation,
-} from 'lucide-react';
+  Footprints,
+  HelpCircle,
+} from "lucide-react";
 
 export const RouteWorkspace: React.FC = () => {
   const {
@@ -38,10 +41,9 @@ export const RouteWorkspace: React.FC = () => {
     startTrip,
   } = useSafety();
 
-  const [drawerRoute] = useState<RouteOption | null>(null);
+  const [drawerRoute, setDrawerRoute] = useState<RouteOption | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
-
 
   const handleSwap = () => {
     const tempLoc = originLocation;
@@ -49,7 +51,8 @@ export const RouteWorkspace: React.FC = () => {
     setDestinationLocation(tempLoc);
   };
 
-  const selectedRouteObj = routes.find((r) => r.id === selectedRouteId) || routes[0];
+  const selectedRouteObj =
+    routes.find((r) => r.id === selectedRouteId) || routes[0];
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto px-1 sm:px-2">
@@ -60,7 +63,8 @@ export const RouteWorkspace: React.FC = () => {
             Plan a route
           </h1>
           <p className="text-xs text-[#64748B] font-normal mt-0.5">
-            Compare walking routes with contextual information about the journey.
+            Compare walking routes with contextual information about the
+            journey.
           </p>
         </div>
 
@@ -115,16 +119,37 @@ export const RouteWorkspace: React.FC = () => {
         </div>
 
         {/* Right Travel Time Selector (5 cols) */}
-        <div className="lg:col-span-5 bg-white border border-[#DCE3EE] rounded-md p-2 flex items-center justify-between gap-2 overflow-x-auto">
-          <span className="text-xs font-medium text-[#64748B] shrink-0">Travel time:</span>
-
+        <div className="lg:col-span-5 bg-white border border-[#DCE3EE] rounded-md p-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={() => setTimeOfDay('now')}
-              className="px-2.5 py-1 rounded text-xs font-medium bg-[#2563EB] text-white font-semibold shadow-xs whitespace-nowrap cursor-pointer"
-            >
-              <span className="font-mono font-bold">NOW · {liveCurrentTime}</span>
-            </button>
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/30 flex items-center gap-1">
+              <Footprints className="w-3 h-3" />
+              <span>Walking</span>
+            </span>
+            <span className="text-[11px] text-[#64748B] font-medium">
+              Time:
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-auto pb-0.5">
+            {[
+              { val: "now" as const, label: `NOW · ${liveCurrentTime}` },
+              { val: "18:00" as const, label: "6:00 PM" },
+              { val: "21:00" as const, label: "9:00 PM" },
+              { val: "23:30" as const, label: "11:30 PM" },
+            ].map((t) => (
+              <button
+                key={t.val}
+                type="button"
+                onClick={() => setTimeOfDay(t.val)}
+                className={`px-2 py-1 rounded text-[11px] font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  timeOfDay === t.val
+                    ? "bg-[#2563EB] text-white font-bold shadow-xs"
+                    : "bg-[#F5F7FB] text-[#64748B] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
+                }`}
+              >
+                <span className="font-mono">{t.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -139,8 +164,8 @@ export const RouteWorkspace: React.FC = () => {
             onSelectRoute={setSelectedRouteId}
             origin={originCoords}
             destination={destinationCoords}
-            originName={originLocation.split(',')[0]}
-            destinationName={destinationLocation.split(',')[0]}
+            originName={originLocation.split(",")[0]}
+            destinationName={destinationLocation.split(",")[0]}
             helpPoints={helpPoints}
             isFallback={isFallbackRouting}
           />
@@ -151,6 +176,47 @@ export const RouteWorkspace: React.FC = () => {
               <span>{routingStatusMessage}</span>
             </div>
           )}
+
+          {/* Non-Visual Text Alternative for Map Information (Phase 7 Accessibility) */}
+          <div className="bg-white border border-[#DCE3EE] rounded-md p-3.5 space-y-2 text-xs">
+            <div className="flex items-center justify-between border-b border-[#DCE3EE] pb-1.5">
+              <span className="font-bold text-[#172033] font-mono text-[11px] uppercase">
+                Corridor Text Summary (Accessibility Alternative)
+              </span>
+              <span className="text-[10px] text-[#64748B] font-mono">
+                Screen reader friendly
+              </span>
+            </div>
+            {selectedRouteObj ? (
+              <div className="space-y-1.5 text-[#64748B] text-[11px] leading-relaxed">
+                <p>
+                  <strong className="text-[#172033]">
+                    {selectedRouteObj.name} ({selectedRouteObj.via}):
+                  </strong>{" "}
+                  {selectedRouteObj.durationMinutes} min,{" "}
+                  {selectedRouteObj.distanceKm} km. Evaluated contextual
+                  support:{" "}
+                  <strong className="text-[#172033]">
+                    {selectedRouteObj.supportLevel}
+                  </strong>{" "}
+                  ({selectedRouteObj.confidence} confidence).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono bg-[#F5F7FB] p-2 rounded border border-[#DCE3EE]">
+                  <div>Lighting: {selectedRouteObj.lightingEvidence}</div>
+                  <div>Pedestrians: {selectedRouteObj.footfallEvidence}</div>
+                  <div>
+                    Help points: {selectedRouteObj.helpPointsCount} available
+                  </div>
+                  <div>Freshness: {selectedRouteObj.freshness}</div>
+                </div>
+                <p className="italic text-[#172033]">
+                  "{selectedRouteObj.whySummary}"
+                </p>
+              </div>
+            ) : (
+              <p className="text-[#64748B]">No route selected.</p>
+            )}
+          </div>
         </div>
 
         {/* Right: Route Options List */}
@@ -160,7 +226,9 @@ export const RouteWorkspace: React.FC = () => {
               Route options
             </h3>
             <span className="text-[11px] font-mono font-semibold text-[#2563EB]">
-              {timeOfDay === 'now' ? `NOW · ${liveCurrentTime}` : selectedTimeDisplay}
+              {timeOfDay === "now"
+                ? `NOW · ${liveCurrentTime}`
+                : selectedTimeDisplay}
             </span>
           </div>
 
@@ -175,14 +243,18 @@ export const RouteWorkspace: React.FC = () => {
                   onClick={() => setSelectedRouteId(rt.id)}
                   className={`p-3 rounded-md border transition-colors cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? 'bg-[#EFF6FF] border-[#2563EB]'
-                      : 'bg-white border-[#DCE3EE] hover:border-[#2563EB]/50'
+                      ? "bg-[#EFF6FF] border-[#2563EB]"
+                      : "bg-white border-[#DCE3EE] hover:border-[#2563EB]/50"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-xs font-bold text-[#172033]">{rt.name}</h4>
-                      <span className="text-[11px] text-[#64748B] block">{rt.via}</span>
+                      <h4 className="text-xs font-bold text-[#172033]">
+                        {rt.name}
+                      </h4>
+                      <span className="text-[11px] text-[#64748B] block">
+                        {rt.via}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2 text-right">
@@ -196,24 +268,45 @@ export const RouteWorkspace: React.FC = () => {
                       </div>
                       <div
                         className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          isSelected ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#DCE3EE] bg-white'
+                          isSelected
+                            ? "border-[#2563EB] bg-[#2563EB]"
+                            : "border-[#DCE3EE] bg-white"
                         }`}
                       >
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        {isSelected && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                        )}
                       </div>
                     </div>
                   </div>
 
+                  {/* Context Band & Why Trigger */}
+                  <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-[#DCE3EE]/80">
+                    <ContextBand level={rt.supportLevel} />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDrawerRoute(rt);
+                        setDrawerOpen(true);
+                      }}
+                      className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <HelpCircle className="w-3 h-3" />
+                      <span>Why this route?</span>
+                    </button>
+                  </div>
+
                   {/* Context Summary Line */}
-                  <div className="text-[11px] text-[#64748B] pt-1.5 border-t border-[#DCE3EE]/80 flex flex-wrap items-center gap-2">
+                  <div className="text-[11px] text-[#64748B] pt-1 flex flex-wrap items-center gap-2">
                     <span className="flex items-center gap-1">
                       <Sun className="w-3 h-3 text-[#2563EB]" />
-                      <span>{rt.lightingEvidence.split('&')[0]}</span>
+                      <span>{rt.lightingEvidence.split("&")[0]}</span>
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3 text-[#64748B]" />
-                      <span>{rt.footfallEvidence.split('&')[0]}</span>
+                      <span>{rt.footfallEvidence.split("&")[0]}</span>
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
@@ -253,12 +346,14 @@ export const RouteWorkspace: React.FC = () => {
               }}
             >
               <Navigation className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span>Start walk on {selectedRouteObj ? selectedRouteObj.name : 'selected route'}</span>
+              <span>
+                Start walk on{" "}
+                {selectedRouteObj ? selectedRouteObj.name : "selected route"}
+              </span>
             </Button>
           </div>
         </div>
       </div>
-
 
       {/* How it Works Modal */}
       {showHowItWorksModal && (
@@ -277,9 +372,18 @@ export const RouteWorkspace: React.FC = () => {
               </button>
             </div>
             <p className="text-xs text-[#64748B] leading-relaxed">
-              SaferPath uses verified physical telemetry (streetlamps, store hours, transit desks) to display contextual evidence for routes at different times of day (6:00 PM, 9:00 PM, 11:30 PM). We state physical facts without giving subjective safety scores or safety guarantees.
+              SaferPath uses verified physical telemetry (streetlamps, store
+              hours, transit desks) to display contextual evidence for routes at
+              different times of day (6:00 PM, 9:00 PM, 11:30 PM). We state
+              physical facts without giving subjective safety scores or safety
+              guarantees.
             </p>
-            <Button variant="primary" size="sm" className="w-full" onClick={() => setShowHowItWorksModal(false)}>
+            <Button
+              variant="primary"
+              size="sm"
+              className="w-full"
+              onClick={() => setShowHowItWorksModal(false)}
+            >
               Got it
             </Button>
           </div>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSafety } from '../../context/SafetyContext';
-import Button from '../../components/common/Button';
+import React, { useState, useEffect } from "react";
+import { useSafety } from "../../context/SafetyContext";
+import Button from "../../components/common/Button";
 import {
   Navigation,
   MapPin,
@@ -18,7 +18,23 @@ import {
   ChevronRight,
   HelpCircle,
   ExternalLink,
-} from 'lucide-react';
+  WifiOff,
+  Bell,
+} from "lucide-react";
+import {
+  createTrip,
+  checkInTrip,
+  stopTrip,
+  pollTrip,
+  type DeviationSummary,
+  type DeviationResponseResult,
+} from "../../api/saferpath/client";
+import { generateIdempotencyKey, generateEventId } from "../../lib/session";
+import SmartDeviationBanner from "./SmartDeviationBanner";
+import {
+  connectTripStream,
+  type TripStreamEvent,
+} from "../../api/trips/tripStream";
 
 interface TripStatusProps {
   onOpenEmergency: () => void;
@@ -43,20 +59,34 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
     setTab,
   } = useSafety();
 
-  const [selectedContactId, setSelectedContactId] = useState<string>(
-    () => (contacts.length > 0 ? contacts[0].id : '')
+  const [selectedContactId, setSelectedContactId] = useState<string>(() =>
+    contacts.length > 0 ? contacts[0].id : "",
   );
   const [showCheckInNotice, setShowCheckInNotice] = useState<boolean>(false);
-  const [lastCheckInTime, setLastCheckInTime] = useState<string>('');
-  const [showStopConfirmation, setShowStopConfirmation] = useState<boolean>(false);
+  const [lastCheckInTime, setLastCheckInTime] = useState<string>("");
+  const [showStopConfirmation, setShowStopConfirmation] =
+    useState<boolean>(false);
   const [showNeedHelpModal, setShowNeedHelpModal] = useState<boolean>(false);
+
+  // Backend synchronization & Deviation state
+  const [backendTripId, setBackendTripId] = useState<string | null>(null);
+  const [activeDeviation, setActiveDeviation] =
+    useState<DeviationSummary | null>(null);
+  const [isDegradedNetwork, setIsDegradedNetwork] = useState<boolean>(false);
+  const [lastCheckInTimestamp, setLastCheckInTimestamp] = useState<number>(() =>
+    Date.now(),
+  );
+  const [missedCheckInWarning, setMissedCheckInWarning] =
+    useState<boolean>(false);
+  const [sseConnected, setSseConnected] = useState<boolean>(false);
 
   // Compute dynamic elapsed time for active trip
   const [elapsedMinutes, setElapsedMinutes] = useState<number>(0);
 
   useEffect(() => {
-    if (!activeTrip || activeTrip.status !== 'In progress') {
+    if (!activeTrip || activeTrip.status !== "In progress") {
       setElapsedMinutes(0);
+      setMissedCheckInWarning(false);
       return;
     }
 
@@ -65,53 +95,224 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
       const nowMs = Date.now();
       const diffMins = Math.max(0, Math.floor((nowMs - startMs) / (1000 * 60)));
       setElapsedMinutes(diffMins);
+
+      // Check if more than 15 minutes since last checkin
+      const minsSinceCheckin = Math.floor(
+        (nowMs - lastCheckInTimestamp) / (1000 * 60),
+      );
+      if (minsSinceCheckin >= 15) {
+        setMissedCheckInWarning(true);
+      } else {
+        setMissedCheckInWarning(false);
+      }
     };
 
     calculateElapsed();
     const interval = setInterval(calculateElapsed, 15000); // update every 15s
     return () => clearInterval(interval);
-  }, [activeTrip]);
+  }, [activeTrip, lastCheckInTimestamp]);
+
+  // SSE real-time stream (preferred over polling when available)
+  useEffect(() => {
+    if (!activeTrip || activeTrip.status !== "In progress" || !backendTripId)
+      return;
+
+    const connection = connectTripStream(
+      backendTripId,
+      (event: TripStreamEvent) => {
+        if (event.type === "deviation_detected" && event.data) {
+          const dev = event.data as unknown as DeviationSummary;
+          if (dev.confirmation_required) {
+            setActiveDeviation(dev);
+          }
+        }
+        // Reset degraded network flag on any successful event
+        setIsDegradedNetwork(false);
+      },
+      () => {
+        // SSE error — will fall back to polling
+        setSseConnected(false);
+      },
+      () => {
+        // SSE connected
+        setSseConnected(true);
+        setIsDegradedNetwork(false);
+      },
+    );
+
+    return () => {
+      connection.close();
+      setSseConnected(false);
+    };
+  }, [activeTrip, backendTripId]);
+
+  // Periodic polling for trip state and deviations (if backend trip ID active)
+  useEffect(() => {
+    if (
+      !activeTrip ||
+      activeTrip.status !== "In progress" ||
+      !backendTripId ||
+      sseConnected
+    )
+      return;
+
+    let isMounted = true;
+    const pollInterval = setInterval(async () => {
+      try {
+        const pollResult = await pollTrip(backendTripId);
+        if (isMounted) {
+          setIsDegradedNetwork(false);
+          if (
+            pollResult.deviation &&
+            pollResult.deviation.confirmation_required
+          ) {
+            setActiveDeviation(pollResult.deviation);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setIsDegradedNetwork(true);
+        }
+      }
+    }, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [activeTrip, backendTripId, sseConnected]);
 
   // Handle "I'm okay" check-in action
-  const handleCheckIn = () => {
-    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    logTripCheckIn('Check-in recorded: Pedestrian journey proceeding normally.', 'checkin_ok');
+  const handleCheckIn = async () => {
+    const nowStr = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const nowMs = Date.now();
+    setLastCheckInTimestamp(nowMs);
+    setMissedCheckInWarning(false);
+    logTripCheckIn(
+      "Check-in recorded: Pedestrian journey proceeding normally.",
+      "checkin_ok",
+    );
     setLastCheckInTime(nowStr);
     setShowCheckInNotice(true);
+
+    // Sync with backend if available
+    if (backendTripId) {
+      try {
+        await checkInTrip(backendTripId, {
+          event_id: generateEventId(),
+          idempotency_key: generateIdempotencyKey(),
+          occurred_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn("Backend check-in sync failed, recorded locally:", err);
+      }
+    }
+
     setTimeout(() => {
       setShowCheckInNotice(false);
     }, 4000);
   };
 
   // Handle trip start from BEFORE TRIP view
-  const handleStartTrip = () => {
+  const handleStartTrip = async () => {
     if (!selectedRoute) return;
     startTrip(selectedRoute.id, selectedContactId || undefined);
+
+    // Attempt backend registration
+    try {
+      const plannedArrival = new Date(
+        Date.now() + selectedRoute.durationMinutes * 60 * 1000,
+      ).toISOString();
+      const res = await createTrip({
+        route_id: selectedRoute.id,
+        planned_arrival: plannedArrival,
+        travel_mode: "walking",
+        active_trip_consent: true,
+        consent_reference: `consent-${Date.now()}`,
+        consent_version: "1.0",
+        sharing_scope: "STATUS_ONLY",
+      });
+      setBackendTripId(res.trip_id);
+    } catch (err) {
+      console.warn(
+        "Backend trip creation unavailable, proceeding with local trip tracking:",
+        err,
+      );
+    }
   };
 
   // Handle confirmed trip stop
-  const handleConfirmStop = () => {
+  const handleConfirmStop = async () => {
     setShowStopConfirmation(false);
     endTrip();
+
+    // Sync stop with backend if active
+    if (backendTripId) {
+      try {
+        await stopTrip(backendTripId, {
+          event_id: generateEventId(),
+          idempotency_key: generateIdempotencyKey(),
+          occurred_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn("Backend stop trip sync failed:", err);
+      }
+    }
+    setActiveDeviation(null);
+  };
+
+  const handleDeviationResolved = (result: DeviationResponseResult) => {
+    logTripCheckIn(
+      `Deviation responded: ${result.user_response}`,
+      "route_adjustment",
+    );
+    setActiveDeviation(null);
+  };
+
+  // Trigger deviation simulation for testing BE-08 workflow
+  const handleSimulateDeviation = () => {
+    const dummyDeviation: DeviationSummary = {
+      deviation_id: `dev-${Date.now()}`,
+      status: "CONFIRMATION_REQUIRED",
+      detected_at: new Date().toISOString(),
+      confirmation_required: true,
+      user_response: null,
+      alternate_route_id: "alt-corridor-2",
+      context_band: "MIXED_CONTEXT",
+      confidence: "High",
+      explanation: {
+        factor: "Departed from planned walkway near Kabutarkhana.",
+      },
+    };
+    setActiveDeviation(dummyDeviation);
   };
 
   // Active trusted contact model
-  const activeContact = contacts.find(
-    (c) => c.id === (activeTrip?.trustedContactId || selectedContactId)
-  ) || contacts[0] || null;
+  const activeContact =
+    contacts.find(
+      (c) => c.id === (activeTrip?.trustedContactId || selectedContactId),
+    ) ||
+    contacts[0] ||
+    null;
 
   // Calculate estimated arrival time
   const getEstimatedArrival = () => {
-    if (!activeTrip) return '';
+    if (!activeTrip) return "";
     const startMs = activeTrip.startedAtTimestamp || Date.now();
     const targetMs = startMs + activeTrip.durationMinutes * 60 * 1000;
-    return new Date(targetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(targetMs).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Determine current trip state
-  const isBeforeTrip = !activeTrip || activeTrip.status === 'Before trip';
-  const isActiveTrip = activeTrip && activeTrip.status === 'In progress';
-  const isCompletedTrip = activeTrip && activeTrip.status === 'Completed';
+  const isBeforeTrip = !activeTrip || activeTrip.status === "Before trip";
+  const isActiveTrip = activeTrip && activeTrip.status === "In progress";
+  const isCompletedTrip = activeTrip && activeTrip.status === "Completed";
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto px-1 pb-8">
@@ -123,7 +324,10 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
           </h1>
           {isActiveTrip && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#2563EB]/30 text-[#2563EB] text-xs font-semibold font-mono">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" aria-hidden="true" />
+              <span
+                className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse"
+                aria-hidden="true"
+              />
               Trip in progress
             </span>
           )}
@@ -135,9 +339,11 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
           )}
         </div>
         <p className="text-xs text-[#64748B]">
-          {isBeforeTrip && 'Select journey parameters and start walk check-in tracking.'}
-          {isActiveTrip && 'Real-time journey progress and timestamped check-in telemetry.'}
-          {isCompletedTrip && 'Journey summary and check-in timeline archive.'}
+          {isBeforeTrip &&
+            "Select journey parameters and start walk check-in tracking."}
+          {isActiveTrip &&
+            "Real-time journey progress and timestamped check-in telemetry."}
+          {isCompletedTrip && "Journey summary and check-in timeline archive."}
         </p>
       </div>
 
@@ -153,7 +359,7 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                 Selected journey configuration
               </h2>
               <button
-                onClick={() => setTab('/route')}
+                onClick={() => setTab("/route")}
                 className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer flex items-center gap-1"
               >
                 <span>Change route</span>
@@ -164,18 +370,26 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             {/* Origin -> Destination Route Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-1">
-                <span className="text-[10px] font-mono text-[#64748B] uppercase font-bold block">From (Origin)</span>
+                <span className="text-[10px] font-mono text-[#64748B] uppercase font-bold block">
+                  From (Origin)
+                </span>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#2563EB] shrink-0" />
-                  <span className="text-xs font-bold text-[#172033] truncate">{originLocation}</span>
+                  <span className="text-xs font-bold text-[#172033] truncate">
+                    {originLocation}
+                  </span>
                 </div>
               </div>
 
               <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-1">
-                <span className="text-[10px] font-mono text-[#64748B] uppercase font-bold block">To (Destination)</span>
+                <span className="text-[10px] font-mono text-[#64748B] uppercase font-bold block">
+                  To (Destination)
+                </span>
                 <div className="flex items-center gap-2">
                   <Navigation className="w-4 h-4 text-[#2563EB] shrink-0" />
-                  <span className="text-xs font-bold text-[#172033] truncate">{destinationLocation}</span>
+                  <span className="text-xs font-bold text-[#172033] truncate">
+                    {destinationLocation}
+                  </span>
                 </div>
               </div>
             </div>
@@ -196,7 +410,8 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                     >
                       {routes.map((r) => (
                         <option key={r.id} value={r.id}>
-                          {r.name} ({r.via}) — {r.durationMinutes} min ({r.distanceKm} km)
+                          {r.name} ({r.via}) — {r.durationMinutes} min (
+                          {r.distanceKm} km)
                         </option>
                       ))}
                     </select>
@@ -207,9 +422,14 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                 <div className="p-4 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md space-y-3">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DCE3EE] pb-2.5">
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-[#2563EB] font-bold block">Selected route</span>
+                      <span className="text-[10px] font-mono uppercase text-[#2563EB] font-bold block">
+                        Selected route
+                      </span>
                       <h3 className="text-sm font-bold text-[#172033]">
-                        {selectedRoute.name} <span className="font-normal text-[#64748B]">via {selectedRoute.via}</span>
+                        {selectedRoute.name}{" "}
+                        <span className="font-normal text-[#64748B]">
+                          via {selectedRoute.via}
+                        </span>
                       </h3>
                     </div>
                     <span className="px-2.5 py-1 rounded text-[11px] font-semibold bg-white border border-[#DCE3EE] text-[#172033]">
@@ -220,23 +440,39 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                   {/* Summary Metrics Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
                     <div>
-                      <span className="text-[10px] text-[#64748B] block">Departure time</span>
+                      <span className="text-[10px] text-[#64748B] block">
+                        Departure time
+                      </span>
                       <span className="font-bold text-[#172033]">
-                        {timeOfDay === 'now' ? `NOW · ${liveCurrentTime}` : selectedTimeDisplay}
+                        {timeOfDay === "now"
+                          ? `NOW · ${liveCurrentTime}`
+                          : selectedTimeDisplay}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748B] block">Est. duration</span>
-                      <span className="font-bold text-[#172033]">{selectedRoute.durationMinutes} min</span>
+                      <span className="text-[10px] text-[#64748B] block">
+                        Est. duration
+                      </span>
+                      <span className="font-bold text-[#172033]">
+                        {selectedRoute.durationMinutes} min
+                      </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748B] block">Distance</span>
-                      <span className="font-bold text-[#172033]">{selectedRoute.distanceKm} km</span>
+                      <span className="text-[10px] text-[#64748B] block">
+                        Distance
+                      </span>
+                      <span className="font-bold text-[#172033]">
+                        {selectedRoute.distanceKm} km
+                      </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748B] block">Evidence freshness</span>
+                      <span className="text-[10px] text-[#64748B] block">
+                        Evidence freshness
+                      </span>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="font-bold text-[#172033]">{selectedRoute.freshness || 'Observed 10 mins ago'}</span>
+                        <span className="font-bold text-[#172033]">
+                          {selectedRoute.freshness || "Observed 10 mins ago"}
+                        </span>
                         <span className="px-1.5 py-0.2 text-[9px] font-mono font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1] rounded">
                           Sample data
                         </span>
@@ -248,7 +484,11 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             ) : (
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-900 flex items-center justify-between">
                 <span>No route selected. Please plan a route first.</span>
-                <Button variant="primary" size="sm" onClick={() => setTab('/route')}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setTab("/route")}
+                >
                   Plan route
                 </Button>
               </div>
@@ -261,7 +501,7 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                   Trusted contact for trip sharing
                 </h3>
                 <button
-                  onClick={() => setTab('/saved-places')}
+                  onClick={() => setTab("/saved-places")}
                   className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer flex items-center gap-1"
                 >
                   <UserPlus className="w-3 h-3" />
@@ -272,28 +512,35 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               {contacts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {contacts.map((c) => {
-                    const isSelected = c.id === (selectedContactId || contacts[0].id);
+                    const isSelected =
+                      c.id === (selectedContactId || contacts[0].id);
                     return (
                       <div
                         key={c.id}
                         onClick={() => setSelectedContactId(c.id)}
                         className={`p-3 rounded-md border cursor-pointer transition-colors flex items-center justify-between text-xs ${
                           isSelected
-                            ? 'bg-[#EFF6FF] border-[#2563EB] text-[#172033]'
-                            : 'bg-white border-[#DCE3EE] hover:bg-[#F5F7FB] text-[#64748B]'
+                            ? "bg-[#EFF6FF] border-[#2563EB] text-[#172033]"
+                            : "bg-white border-[#DCE3EE] hover:bg-[#F5F7FB] text-[#64748B]"
                         }`}
                       >
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#172033] text-xs">{c.name}</span>
-                            <span className="text-[10px] text-[#64748B] font-mono">({c.relationship})</span>
-                            {c.id.startsWith('c-') && (
+                            <span className="font-bold text-[#172033] text-xs">
+                              {c.name}
+                            </span>
+                            <span className="text-[10px] text-[#64748B] font-mono">
+                              ({c.relationship})
+                            </span>
+                            {c.id.startsWith("c-") && (
                               <span className="px-1.5 py-0.2 text-[9px] font-mono font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1] rounded">
                                 Demo contact
                               </span>
                             )}
                           </div>
-                          <span className="text-[11px] font-mono text-[#64748B] block">{c.phone}</span>
+                          <span className="text-[11px] font-mono text-[#64748B] block">
+                            {c.phone}
+                          </span>
                         </div>
                         {isSelected && (
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-[#2563EB] text-white">
@@ -308,7 +555,7 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                 <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md text-xs text-[#64748B] flex items-center justify-between">
                   <span>No trusted contacts configured.</span>
                   <button
-                    onClick={() => setTab('/saved-places')}
+                    onClick={() => setTab("/saved-places")}
                     className="px-3 py-1 bg-white hover:bg-[#EFF6FF] text-[#2563EB] font-semibold text-xs border border-[#DCE3EE] rounded cursor-pointer"
                   >
                     Set up trusted contact
@@ -334,10 +581,13 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
           <div className="p-3.5 rounded-md bg-[#F5F7FB] border border-[#DCE3EE] text-[#64748B] text-xs flex items-start gap-2.5">
             <Info className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <span className="font-bold text-[#172033] block">Operational telemetry statement</span>
+              <span className="font-bold text-[#172033] block">
+                Operational telemetry statement
+              </span>
               <p>
-                SaferPath active trip provides self-directed check-ins and contact notification logs.
-                It does not provide live GPS satellite tracking or automatic emergency service dispatch.
+                SaferPath active trip provides self-directed check-ins and
+                contact notification logs. It does not provide live GPS
+                satellite tracking or automatic emergency service dispatch.
               </p>
             </div>
           </div>
@@ -349,6 +599,49 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
       {/* ========================================================================= */}
       {isActiveTrip && (
         <div className="space-y-4">
+          {/* Smart Active Deviation Banner (BE-08) */}
+          {activeDeviation && (
+            <SmartDeviationBanner
+              tripId={backendTripId || activeTrip.id}
+              deviation={activeDeviation}
+              onResolved={handleDeviationResolved}
+            />
+          )}
+
+          {/* Missed Check-In Alert (Non-alarmist) */}
+          {missedCheckInWarning && (
+            <div
+              role="alert"
+              className="p-3.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-md text-xs space-y-1"
+            >
+              <div className="flex items-center gap-2 font-bold">
+                <Bell className="w-4 h-4 text-amber-700" />
+                <span>Check-in Reminder</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                It has been over 15 minutes since your last check-in. If your
+                walk is proceeding normally, please tap "I'm okay" below to
+                update your trip timeline.
+              </p>
+            </div>
+          )}
+
+          {/* Degraded Network Notice */}
+          {isDegradedNetwork && (
+            <div
+              role="status"
+              className="p-2.5 bg-blue-50 border border-blue-200 text-blue-900 rounded-md text-xs flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <WifiOff className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="text-[11px]">
+                  Degraded network connection. Check-in records are preserved
+                  locally and will sync when reconnected.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Check-In Confirmation Toast Banner */}
           {showCheckInNotice && (
             <div
@@ -357,7 +650,9 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Check-in recorded at {lastCheckInTime}. Log added to timeline.</span>
+                <span>
+                  Check-in recorded at {lastCheckInTime}. Log added to timeline.
+                </span>
               </div>
               <button
                 onClick={() => setShowCheckInNotice(false)}
@@ -387,9 +682,12 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               </div>
 
               <div className="text-left sm:text-right">
-                <span className="text-[11px] font-mono text-[#64748B] block">Status: Trip in progress</span>
+                <span className="text-[11px] font-mono text-[#64748B] block">
+                  Status: Trip in progress
+                </span>
                 <span className="text-sm font-bold text-[#172033] font-mono">
-                  {activeTrip.durationMinutes} min journey ({activeTrip.remainingDistanceKm} km)
+                  {activeTrip.durationMinutes} min journey (
+                  {activeTrip.remainingDistanceKm} km)
                 </span>
               </div>
             </div>
@@ -397,20 +695,36 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             {/* Journey Progress Data Matrix */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F5F7FB] border border-[#DCE3EE] p-3.5 rounded-md text-xs font-mono">
               <div>
-                <span className="text-[10px] text-[#64748B] block uppercase font-bold">Started</span>
-                <span className="font-bold text-[#172033]">{activeTrip.startedAt}</span>
+                <span className="text-[10px] text-[#64748B] block uppercase font-bold">
+                  Started
+                </span>
+                <span className="font-bold text-[#172033]">
+                  {activeTrip.startedAt}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-[#64748B] block uppercase font-bold">Elapsed</span>
-                <span className="font-bold text-[#2563EB]">{elapsedMinutes} min</span>
+                <span className="text-[10px] text-[#64748B] block uppercase font-bold">
+                  Elapsed
+                </span>
+                <span className="font-bold text-[#2563EB]">
+                  {elapsedMinutes} min
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-[#64748B] block uppercase font-bold">Est. arrival</span>
-                <span className="font-bold text-[#172033]">{getEstimatedArrival()}</span>
+                <span className="text-[10px] text-[#64748B] block uppercase font-bold">
+                  Est. arrival
+                </span>
+                <span className="font-bold text-[#172033]">
+                  {getEstimatedArrival()}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-[#64748B] block uppercase font-bold">Selected route</span>
-                <span className="font-bold text-[#172033] truncate block">{activeTrip.routeName}</span>
+                <span className="text-[10px] text-[#64748B] block uppercase font-bold">
+                  Selected route
+                </span>
+                <span className="font-bold text-[#172033] truncate block">
+                  {activeTrip.routeName}
+                </span>
               </div>
             </div>
 
@@ -418,9 +732,24 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             <div className="text-[11px] text-[#64748B] bg-white border border-[#DCE3EE] p-2.5 rounded-md flex items-center gap-2">
               <Radio className="w-3.5 h-3.5 text-[#2563EB] shrink-0 animate-pulse" />
               <span>
-                <strong>Telemetry note:</strong> GPS location is not actively tracked. Progress is recorded via user-initiated check-ins.
+                <strong>Telemetry note:</strong> GPS location is not actively
+                tracked. Progress is recorded via user-initiated check-ins.
               </span>
             </div>
+
+            {/* SSE Connection Status */}
+            {backendTripId && (
+              <div className="text-[10px] font-mono text-[#64748B] flex items-center gap-1.5 px-2.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${sseConnected ? "bg-emerald-500" : "bg-amber-400"}`}
+                />
+                <span>
+                  {sseConnected
+                    ? "Real-time stream active"
+                    : "Using periodic polling"}
+                </span>
+              </div>
+            )}
 
             {/* Operational Action Controls Grid */}
             <div className="space-y-2.5 pt-2">
@@ -461,10 +790,19 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               </div>
 
               {/* Stop Trip Action Button */}
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex justify-between items-center flex-wrap gap-2">
+                {!activeDeviation && (
+                  <button
+                    type="button"
+                    onClick={handleSimulateDeviation}
+                    className="text-[11px] font-mono text-[#64748B] hover:text-[#2563EB] underline cursor-pointer"
+                  >
+                    Simulate deviation detection (BE-08)
+                  </button>
+                )}
                 <button
                   onClick={() => setShowStopConfirmation(true)}
-                  className="py-2 px-3.5 bg-white border border-[#DCE3EE] hover:bg-rose-50 text-[#C62828] hover:border-rose-300 font-semibold text-xs rounded-md transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="py-2 px-3.5 bg-white border border-[#DCE3EE] hover:bg-rose-50 text-[#C62828] hover:border-rose-300 font-semibold text-xs rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ml-auto"
                 >
                   <X className="w-3.5 h-3.5" />
                   <span>Stop trip</span>
@@ -482,11 +820,13 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#172033]">{activeContact.name}</span>
+                    <span className="text-xs font-bold text-[#172033]">
+                      {activeContact.name}
+                    </span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20">
                       Trip sharing active
                     </span>
-                    {activeContact.id.startsWith('c-') && (
+                    {activeContact.id.startsWith("c-") && (
                       <span className="px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1] rounded">
                         Demo contact
                       </span>
@@ -514,7 +854,9 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               <h3 className="text-xs font-bold text-[#172033] uppercase font-mono tracking-wider">
                 Trip activity timeline ({activeTrip.checkInLogs.length})
               </h3>
-              <span className="text-[11px] font-mono text-[#64748B]">Updated real-time</span>
+              <span className="text-[11px] font-mono text-[#64748B]">
+                Updated real-time
+              </span>
             </div>
 
             <div className="space-y-0 relative pl-4 border-l-2 border-[#DCE3EE] ml-2">
@@ -523,21 +865,25 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                   {/* Timeline dot */}
                   <span
                     className={`absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                      idx === 0 ? 'bg-[#2563EB]' : 'bg-[#64748B]'
+                      idx === 0 ? "bg-[#2563EB]" : "bg-[#64748B]"
                     }`}
                   />
                   <div className="flex items-start justify-between gap-2 text-xs">
                     <div>
                       <span className="font-semibold text-[#172033] block text-xs">
-                        {log.event === 'walk_commenced'
-                          ? 'Trip started'
-                          : log.event === 'destination_reached'
-                          ? 'Trip completed'
-                          : 'Check-in recorded'}
+                        {log.event === "walk_commenced"
+                          ? "Trip started"
+                          : log.event === "destination_reached"
+                            ? "Trip completed"
+                            : "Check-in recorded"}
                       </span>
-                      <p className="text-[#64748B] text-xs mt-0.5">{log.message}</p>
+                      <p className="text-[#64748B] text-xs mt-0.5">
+                        {log.message}
+                      </p>
                     </div>
-                    <span className="font-mono text-[#64748B] text-[11px] shrink-0">{log.timestamp}</span>
+                    <span className="font-mono text-[#64748B] text-[11px] shrink-0">
+                      {log.timestamp}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -578,28 +924,52 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">FROM</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.origin}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    FROM
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.origin}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">TO</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.destination}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    TO
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.destination}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">Route</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.routeName}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    Route
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.routeName}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">Check-ins recorded</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.checkInLogs.length}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    Check-ins recorded
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.checkInLogs.length}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">Started</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.startedAt}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    Started
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.startedAt}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#64748B] text-[11px] block font-mono">Ended</span>
-                  <span className="font-bold text-[#172033]">{activeTrip.endedAt || 'Just now'}</span>
+                  <span className="text-[#64748B] text-[11px] block font-mono">
+                    Ended
+                  </span>
+                  <span className="font-bold text-[#172033]">
+                    {activeTrip.endedAt || "Just now"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -611,18 +981,25 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               </h3>
               <div className="bg-white border border-[#DCE3EE] rounded-md divide-y divide-[#DCE3EE]">
                 {activeTrip.checkInLogs.map((log) => (
-                  <div key={log.id} className="p-3 flex justify-between items-start text-xs">
+                  <div
+                    key={log.id}
+                    className="p-3 flex justify-between items-start text-xs"
+                  >
                     <div>
                       <span className="font-semibold text-[#172033] block text-xs">
-                        {log.event === 'walk_commenced'
-                          ? 'Trip started'
-                          : log.event === 'destination_reached'
-                          ? 'Trip ended'
-                          : 'Check-in recorded'}
+                        {log.event === "walk_commenced"
+                          ? "Trip started"
+                          : log.event === "destination_reached"
+                            ? "Trip ended"
+                            : "Check-in recorded"}
                       </span>
-                      <span className="text-[#64748B] text-[11px]">{log.message}</span>
+                      <span className="text-[#64748B] text-[11px]">
+                        {log.message}
+                      </span>
                     </div>
-                    <span className="font-mono text-[#64748B] text-[11px] shrink-0">{log.timestamp}</span>
+                    <span className="font-mono text-[#64748B] text-[11px] shrink-0">
+                      {log.timestamp}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -633,7 +1010,7 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               <button
                 onClick={() => {
                   resetTrip();
-                  setTab('/route');
+                  setTab("/route");
                 }}
                 className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs rounded-md shadow-xs transition-colors cursor-pointer"
               >
@@ -654,7 +1031,9 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
           <div className="p-3 rounded-md bg-[#F5F7FB] border border-[#DCE3EE] text-[#64748B] text-xs flex items-center gap-2">
             <Lock className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
             <span>
-              <strong>Data retention:</strong> All active journey timelines and check-in logs are stored locally and purged 24 hours after completion.
+              <strong>Data retention:</strong> All active journey timelines and
+              check-in logs are stored locally and purged 24 hours after
+              completion.
             </span>
           </div>
         </div>
@@ -672,11 +1051,15 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
         >
           <div className="w-full max-w-md bg-white border border-[#DCE3EE] rounded-md shadow-lg p-5 space-y-4 animate-fadeIn">
             <div className="space-y-1">
-              <h3 id="stop-trip-title" className="text-base font-bold text-[#172033]">
+              <h3
+                id="stop-trip-title"
+                className="text-base font-bold text-[#172033]"
+              >
                 End this trip?
               </h3>
               <p className="text-xs text-[#64748B]">
-                This will conclude your active walk check-in session and log your final arrival time.
+                This will conclude your active walk check-in session and log
+                your final arrival time.
               </p>
             </div>
 
@@ -714,7 +1097,10 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                 <span className="text-[10px] font-mono uppercase text-[#2563EB] font-bold block">
                   Assistance options
                 </span>
-                <h3 id="need-help-title" className="text-base font-bold text-[#172033]">
+                <h3
+                  id="need-help-title"
+                  className="text-base font-bold text-[#172033]"
+                >
                   Non-emergency journey support
                 </h3>
               </div>
@@ -728,7 +1114,8 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             </div>
 
             <p className="text-xs text-[#64748B] leading-relaxed">
-              If you require assistance or want to notify someone during your walk, select an action below:
+              If you require assistance or want to notify someone during your
+              walk, select an action below:
             </p>
 
             <div className="space-y-2.5">
@@ -736,8 +1123,12 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               {activeContact ? (
                 <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md flex justify-between items-center text-xs">
                   <div>
-                    <span className="font-bold text-[#172033] block">{activeContact.name}</span>
-                    <span className="text-[11px] text-[#64748B] font-mono">{activeContact.phone}</span>
+                    <span className="font-bold text-[#172033] block">
+                      {activeContact.name}
+                    </span>
+                    <span className="text-[11px] text-[#64748B] font-mono">
+                      {activeContact.phone}
+                    </span>
                   </div>
                   <a
                     href={`tel:${activeContact.phone}`}
@@ -753,7 +1144,7 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
                   <button
                     onClick={() => {
                       setShowNeedHelpModal(false);
-                      setTab('/saved-places');
+                      setTab("/saved-places");
                     }}
                     className="text-[#2563EB] font-semibold text-xs underline cursor-pointer"
                   >
@@ -765,13 +1156,17 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
               {/* Option B: View Nearby Help Points */}
               <div className="p-3 bg-[#F5F7FB] border border-[#DCE3EE] rounded-md flex justify-between items-center text-xs">
                 <div>
-                  <span className="font-bold text-[#172033] block">Nearby Help Points</span>
-                  <span className="text-[11px] text-[#64748B]">Locate verified commercial or transit desks nearby</span>
+                  <span className="font-bold text-[#172033] block">
+                    Nearby Help Points
+                  </span>
+                  <span className="text-[11px] text-[#64748B]">
+                    Locate verified commercial or transit desks nearby
+                  </span>
                 </div>
                 <button
                   onClick={() => {
                     setShowNeedHelpModal(false);
-                    setTab('/help');
+                    setTab("/help");
                   }}
                   className="px-3 py-1.5 bg-white border border-[#DCE3EE] hover:bg-[#EFF6FF] text-[#172033] hover:text-[#2563EB] font-semibold rounded text-xs transition-colors flex items-center gap-1 cursor-pointer"
                 >
@@ -785,7 +1180,9 @@ export const TripStatus: React.FC<TripStatusProps> = ({ onOpenEmergency }) => {
             <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-md space-y-1">
               <span className="font-bold block">Important statement</span>
               <p className="text-[11px] leading-relaxed">
-                SaferPath provides contextual information and direct contact dialing. It does not dispatch official police or emergency services. For immediate emergencies, call 112 directly.
+                SaferPath provides contextual information and direct contact
+                dialing. It does not dispatch official police or emergency
+                services. For immediate emergencies, call 112 directly.
               </p>
             </div>
 
