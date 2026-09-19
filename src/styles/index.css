@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-app: #F7F7F5;
+    --bg-surface: #FFFFFF;
+    --bg-muted: #F1F3F2;
+    --border-color: #D9DDE3;
+    --text-primary: #142033;
+    --text-secondary: #5F6B7A;
+
+    /* Primary Accents */
+    --accent-teal: #0B8F83;
+    --accent-teal-dark: #08766D;
+    --accent-emergency: #C83B4A;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    line-height: 1.5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+  }
+
+  .font-mono-telemetry {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .focus-visible-ring {
+    outline: none;
+  }
+  .focus-visible-ring:focus-visible {
+    outline: 2px solid #142033;
+    outline-offset: 2px;
+  }
+}
