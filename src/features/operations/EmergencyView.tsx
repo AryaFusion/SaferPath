@@ -15,11 +15,11 @@ export const EmergencyView: React.FC = () => {
   return (
     <div className="space-y-4 max-w-4xl mx-auto px-1">
       {/* Title */}
-      <div className="space-y-1 pb-3 border-b border-[#D9DDE3]">
-        <h1 className="text-2xl font-bold text-[#142033] tracking-tight">
+      <div className="space-y-1 pb-3 border-b border-[#DCE3EE]">
+        <h1 className="text-2xl font-bold text-[#172033] tracking-tight">
           Emergency assistance
         </h1>
-        <p className="text-xs text-[#5F6B7A]">
+        <p className="text-xs text-[#64748B]">
           Direct dial connection to official public emergency services (112) and user-initiated SMS alert dispatch.
         </p>
       </div>
@@ -27,11 +27,11 @@ export const EmergencyView: React.FC = () => {
       {/* Emergency Call Banner */}
       <div className="bg-rose-50 border border-rose-200 rounded-md p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-md bg-[#C83B4A] text-white flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-md bg-[#C62828] text-white flex items-center justify-center font-bold">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#C83B4A]">Official Emergency Hotline (112 / 100)</h2>
+            <h2 className="text-sm font-bold text-[#C62828]">Official emergency hotline (112 / 100)</h2>
             <p className="text-xs text-rose-800">Direct telephone connection to public emergency dispatch operators.</p>
           </div>
         </div>
@@ -39,23 +39,23 @@ export const EmergencyView: React.FC = () => {
         <a href="tel:112" className="inline-block w-full sm:w-auto">
           <Button variant="caution" size="md" className="w-full">
             <Phone className="w-4 h-4" />
-            <span>Call 112 Emergency Services</span>
+            <span>Call 112 emergency services</span>
           </Button>
         </a>
       </div>
 
       {/* Instant Contact Alert Broadcast Card */}
-      <div className="bg-white border border-[#D9DDE3] rounded-md p-4 space-y-3">
-        <h2 className="text-xs font-bold text-[#142033] uppercase font-mono-telemetry">
-          User-Initiated Contact Broadcast
+      <div className="bg-white border border-[#DCE3EE] rounded-md p-4 space-y-3">
+        <h2 className="text-xs font-bold text-[#172033] font-mono">
+          User-initiated contact broadcast
         </h2>
-        <p className="text-xs text-[#5F6B7A] leading-relaxed">
+        <p className="text-xs text-[#64748B] leading-relaxed">
           Trigger an urgent SMS message containing your destination context to your configured trusted contacts ({contacts.length}).
         </p>
 
         {broadcastSent && (
-          <div className="p-2.5 bg-[#EBF2F1] border border-[#0B8F83]/30 text-[#0B8F83] text-xs font-semibold rounded-md flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 shrink-0" />
+          <div className="p-2.5 bg-[#EFF6FF] border border-[#2563EB]/30 text-[#2563EB] text-xs font-semibold rounded-md flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 shrink-0 text-[#2563EB]" />
             <span>Emergency SMS alert dispatched to {contacts.map((c) => c.name).join(', ')}.</span>
           </div>
         )}
@@ -66,14 +66,14 @@ export const EmergencyView: React.FC = () => {
           onClick={handleBroadcast}
           className="w-full sm:w-auto"
         >
-          <Send className="w-3.5 h-3.5 text-[#142033]" />
-          <span>Send SMS Alert to Trusted Contacts</span>
+          <Send className="w-3.5 h-3.5 text-[#172033]" />
+          <span>Send SMS alert to trusted contacts</span>
         </Button>
       </div>
 
       {/* Disclaimer */}
-      <div className="p-3 rounded-md bg-[#F1F3F2] border border-[#D9DDE3] text-[#5F6B7A] text-xs">
-        <strong>Important Statement:</strong> SaferPath does not automatically dispatch law enforcement or medical emergency services. In urgent situations, always dial 112 directly.
+      <div className="p-3 rounded-md bg-[#F5F7FB] border border-[#DCE3EE] text-[#64748B] text-xs">
+        <strong>Important statement:</strong> SaferPath does not automatically dispatch law enforcement or medical emergency services. In urgent situations, always dial 112 directly.
       </div>
     </div>
   );

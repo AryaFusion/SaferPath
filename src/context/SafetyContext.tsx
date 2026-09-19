@@ -20,6 +20,7 @@ interface SafetyContextType {
   setTab: (t: ApplicationTab) => void;
   timeOfDay: TimeOfDay;
   setTimeOfDay: (t: TimeOfDay) => void;
+  userLocationName: string;
   selectedRouteId: string;
   setSelectedRouteId: (id: string) => void;
   originLocation: string;
@@ -87,8 +88,24 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('23:30'); // Default to 11:30 PM
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('18:00');
   const [selectedRouteId, setSelectedRouteId] = useState<string>('valhalla-route-1');
+  const [userLocationName, setUserLocationName] = useState<string>('Mumbai');
+
+  // Detect user geolocation on load if available
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          setUserLocationName('Current location');
+        },
+        () => {
+          setUserLocationName('Mumbai');
+        },
+        { timeout: 5000 }
+      );
+    }
+  }, []);
 
   
   // Default Journey: Shivaji Park, Mumbai -> Dadar Station, Mumbai
@@ -303,6 +320,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setTab,
         timeOfDay,
         setTimeOfDay,
+        userLocationName,
         selectedRouteId,
         setSelectedRouteId,
         originLocation,

@@ -2,12 +2,14 @@ import type { Feature, LineString } from 'geojson';
 
 export type Coordinates = [number, number]; // [longitude, latitude]
 
+import type { TimeOfDay } from '../../lib/types';
+
 export interface RouteRequestOptions {
   origin: Coordinates;
   destination: Coordinates;
   originName?: string;
   destinationName?: string;
-  timeOfDay?: '18:00' | '21:00' | '23:30';
+  timeOfDay?: TimeOfDay;
 }
 
 export interface NormalizedRoute {

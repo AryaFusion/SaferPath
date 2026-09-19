@@ -7,17 +7,22 @@
 
 @layer base {
   :root {
-    --bg-app: #F7F7F5;
+    --bg-app: #F5F7FB;
     --bg-surface: #FFFFFF;
-    --bg-muted: #F1F3F2;
-    --border-color: #D9DDE3;
-    --text-primary: #142033;
-    --text-secondary: #5F6B7A;
+    --bg-pale: #F7FAFF;
+    --bg-ice: #EFF6FF;
+    --bg-midnight: #101828;
+    --border-color: #DCE3EE;
+    --text-primary: #172033;
+    --text-secondary: #64748B;
 
-    /* Primary Accents */
-    --accent-teal: #0B8F83;
-    --accent-teal-dark: #08766D;
-    --accent-emergency: #C83B4A;
+    /* Accents */
+    --accent-cobalt: #2563EB;
+    --accent-deep-blue: #1D4ED8;
+    --accent-sky: #38BDF8;
+    --accent-positive: #0F766E;
+    --accent-amber: #B45309;
+    --accent-emergency: #C62828;
   }
 
   body {
@@ -47,7 +52,7 @@
     outline: none;
   }
   .focus-visible-ring:focus-visible {
-    outline: 2px solid #142033;
+    outline: 2px solid #2563EB;
     outline-offset: 2px;
   }
 }

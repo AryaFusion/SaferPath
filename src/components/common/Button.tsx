@@ -19,16 +19,16 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  let variantStyles = 'bg-[#142033] text-white hover:bg-slate-800 border-transparent';
+  let variantStyles = 'bg-[#2563EB] text-white hover:bg-[#1D4ED8] border-transparent';
 
   if (variant === 'secondary') {
-    variantStyles = 'bg-white text-[#142033] hover:bg-[#F1F3F2] border border-[#D9DDE3]';
+    variantStyles = 'bg-white text-[#172033] hover:bg-[#F7FAFF] border border-[#DCE3EE]';
   } else if (variant === 'outline') {
-    variantStyles = 'bg-white text-[#142033] hover:bg-[#F1F3F2] border border-[#D9DDE3]';
+    variantStyles = 'bg-white text-[#172033] hover:bg-[#F7FAFF] border border-[#DCE3EE]';
   } else if (variant === 'caution') {
-    variantStyles = 'bg-[#C83B4A] text-white hover:bg-rose-800 border-transparent font-medium';
+    variantStyles = 'bg-[#C62828] text-white hover:bg-red-800 border-transparent font-medium';
   } else if (variant === 'ghost') {
-    variantStyles = 'bg-transparent text-[#5F6B7A] hover:text-[#142033] hover:bg-[#F1F3F2] border-transparent';
+    variantStyles = 'bg-transparent text-[#64748B] hover:text-[#172033] hover:bg-[#EFF6FF] border-transparent';
   }
 
   let sizeStyles = 'px-3.5 py-2 text-xs rounded-md font-medium';

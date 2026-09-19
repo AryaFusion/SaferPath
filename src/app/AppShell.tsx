@@ -20,7 +20,7 @@ export const AppShell: React.FC = () => {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#121826] flex font-sans selection:bg-slate-900 selection:text-white pb-16 md:pb-0">
+    <div className="min-h-screen bg-[#F5F7FB] text-[#172033] flex font-sans selection:bg-[#2563EB] selection:text-white pb-16 md:pb-0">
       {/* Left Sidebar Navigation (Desktop) */}
       <Sidebar />
 
@@ -43,23 +43,23 @@ export const AppShell: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="mt-12 border-t border-stone-200/80 bg-[#faf8f5] py-8 px-6 text-xs text-slate-500">
+        <footer className="mt-12 border-t border-[#DCE3EE] bg-white py-6 px-6 text-xs text-[#64748B]">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
             <div>
-              <span className="font-bold font-editorial text-slate-900 text-sm block">SaferPath</span>
-              <span className="text-[11px] text-slate-500">A safer journey is a more open world.</span>
+              <span className="font-bold text-[#172033] text-sm block">SaferPath</span>
+              <span className="text-[11px] text-[#64748B]">A safer journey is a more open world.</span>
             </div>
 
-            <div className="flex items-center gap-4 text-[11px] text-slate-500">
-              <button onClick={() => setTab('/privacy')} className="hover:text-slate-900 cursor-pointer">
+            <div className="flex items-center gap-4 text-[11px] text-[#64748B]">
+              <button onClick={() => setTab('/privacy')} className="hover:text-[#2563EB] cursor-pointer transition-colors">
                 Privacy
               </button>
               <span>•</span>
-              <button onClick={() => setTab('/saved-places')} className="hover:text-slate-900 cursor-pointer">
+              <button onClick={() => setTab('/saved-places')} className="hover:text-[#2563EB] cursor-pointer transition-colors">
                 Saved Places
               </button>
               <span>•</span>
-              <button onClick={() => setTab('/help')} className="hover:text-slate-900 cursor-pointer">
+              <button onClick={() => setTab('/help')} className="hover:text-[#2563EB] cursor-pointer transition-colors">
                 Help Nearby
               </button>
             </div>

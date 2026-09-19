@@ -269,23 +269,6 @@ export const MapLibreRouteMap: React.FC<MapLibreRouteMapProps> = ({
         </div>
       )}
 
-      {/* Minimal Legend Bar Overlay (Bottom Left) */}
-      <div className="absolute left-3 bottom-3 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-stone-200 shadow-xs text-[10px] font-medium text-slate-700">
-        <div className="flex items-center gap-1">
-          <span className="w-3 h-1 bg-[#0F8F83] rounded-full" />
-          <span>Selected</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <span className="w-3 h-1 bg-slate-400 rounded-full" />
-          <span>Alternative</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-teal-600" />
-          <span>Help</span>
-        </div>
-      </div>
     </div>
   );
 };
