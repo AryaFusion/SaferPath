@@ -1,26 +1,26 @@
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Home, Map, FileText, LifeBuoy, Settings, Menu, Bell, X,
-  User, Lock, Accessibility, Info, PhoneCall, LogOut, ChevronRight, Settings2,
-} from "lucide-react";
+import { Home, Map, FileText, LifeBuoy, Menu, Bell, X, User, Lock, Accessibility, Info, PhoneCall, LogOut, ChevronRight } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
+
+import { usePreferences } from "../../context/PreferencesContext";
+import { useAuth } from "../../context/AuthContext";
 
 const navItems = [
   { label: "Home", href: "/home", icon: Home },
   { label: "Trips", href: "/trips", icon: Map },
   { label: "Reports", href: "/reports", icon: FileText },
   { label: "Help Nearby", href: "/help", icon: LifeBuoy },
-  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 const menuItems = [
-  { label: "Profile / Personal Details", icon: User },
-  { label: "Notifications", icon: Bell },
-  { label: "Privacy", icon: Lock },
-  { label: "Accessibility", icon: Accessibility },
-  { label: "About SaferPath", icon: Info },
-  { label: "Support & Emergency Info", icon: PhoneCall },
+  { label: "Profile", icon: User, hash: "" },
+  { label: "Personal details", icon: User, hash: "" },
+  { label: "Notifications", icon: Bell, hash: "" },
+  { label: "Privacy", icon: Lock, hash: "" },
+  { label: "Accessibility", icon: Accessibility, hash: "" },
+  { label: "About SaferPath", icon: Info, hash: "" },
+  { label: "Help & support", icon: PhoneCall, hash: "" },
 ];
 
 function SaferPathLogo({ size = "md" }: { size?: "sm" | "md" }) {
@@ -41,26 +41,13 @@ export default function AppNavbar() {
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const { clearLocalData } = usePreferences();
+  const { currentUser, logout } = useAuth();
   const avatarRef = useRef<HTMLDivElement>(null);
 
-  // Close avatar menu on click-outside or Escape
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
-        setAvatarMenuOpen(false);
-      }
-    }
-    function keyHandler(e: KeyboardEvent) {
-      if (e.key === "Escape") setAvatarMenuOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("keydown", keyHandler);
-    return () => {
-      document.removeEventListener("mousedown", handler);
-      document.removeEventListener("keydown", keyHandler);
-    };
-  }, []);
+  const userName = currentUser?.name || "User";
+  const userInitial = userName.charAt(0).toUpperCase() || "U";
+  const userEmail = currentUser?.email || "user@saferpath.app";
 
   return (
     <>
@@ -108,47 +95,13 @@ export default function AppNavbar() {
             </button>
             {/* Avatar + dropdown */}
             <div className="relative" ref={avatarRef}>
-              <button
-                onClick={() => setAvatarMenuOpen((o) => !o)}
-                aria-label="Account menu"
-                aria-expanded={avatarMenuOpen}
+              <Link
+                to="/profile"
+                aria-label="Account profile"
                 className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-emerald-100 text-emerald-700 ring-2 ring-emerald-200 transition-all hover:ring-emerald-400 focus:outline-none focus:ring-emerald-500"
               >
-                <span className="text-xs font-bold">A</span>
-              </button>
-              <AnimatePresence>
-                {avatarMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-[calc(100%+8px)] z-30 w-52 rounded-2xl border border-slate-200 bg-white py-2 shadow-xl"
-                  >
-                    <div className="border-b border-slate-100 px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-900">Arya</p>
-                      <p className="text-xs text-slate-500">arya@example.com</p>
-                    </div>
-                    {[
-                      { label: "Personal Details", icon: User },
-                      { label: "Settings", icon: Settings2 },
-                      { label: "Privacy", icon: Lock },
-                      { label: "Accessibility", icon: Accessibility },
-                    ].map((item) => (
-                      <button key={item.label} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
-                        <item.icon className="h-4 w-4 text-slate-400" />
-                        {item.label}
-                      </button>
-                    ))}
-                    <div className="mt-1 border-t border-slate-100 pt-1">
-                      <button className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-                        <LogOut className="h-4 w-4" />
-                        Log out
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                <span className="text-xs font-bold">{userInitial}</span>
+              </Link>
             </div>
           </div>
         </nav>
@@ -250,34 +203,44 @@ export default function AppNavbar() {
               {/* Profile pill */}
               <div className="mx-4 my-4 flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                  <span className="text-sm font-bold">A</span>
+                  <span className="text-sm font-bold">{userInitial}</span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">Arya</p>
-                  <p className="text-xs text-slate-500">arya@example.com</p>
+                  <p className="text-sm font-semibold text-slate-900">{userName}</p>
+                  <p className="text-xs text-slate-500">{userEmail}</p>
                 </div>
               </div>
 
               {/* Menu items */}
-              <nav className="flex-1 px-3">
+              <nav className="flex-1 overflow-y-auto px-3">
                 {menuItems.map((item) => (
-                  <button
+                  <Link
                     key={item.label}
+                    to="/profile"
+                    onClick={() => setDrawerOpen(false)}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50"
                   >
                     <item.icon className="h-4 w-4 shrink-0 text-slate-400" />
                     <span className="flex-1 font-medium">{item.label}</span>
                     <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-                  </button>
+                  </Link>
                 ))}
               </nav>
 
               {/* Logout */}
               <div className="border-t border-slate-100 px-3 py-4">
-                <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
+                <Link
+                  to="/login"
+                  onClick={() => {
+                    logout();
+                    clearLocalData();
+                    setDrawerOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                >
                   <LogOut className="h-4 w-4 shrink-0" />
                   <span className="font-medium">Logout</span>
-                </button>
+                </Link>
               </div>
             </motion.aside>
           </>

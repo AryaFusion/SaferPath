@@ -1,7 +1,9 @@
 import { useState } from "react";
 import AppNavbar from "../components/app/AppNavbar";
 import { motion, AnimatePresence } from "framer-motion";
-import { Navigation, Clock, ShieldAlert, CheckCircle2, FileText, X, ChevronRight, Activity, Lightbulb, LifeBuoy } from "lucide-react";
+import { Navigation, Clock, ShieldAlert, CheckCircle2, FileText, X, ChevronRight, Activity, Lightbulb, LifeBuoy, MapPin } from "lucide-react";
+import { useJourney } from "../context/JourneyContext";
+
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
@@ -26,26 +28,6 @@ interface Trip {
     freshness: string;
   };
 }
-
-const mockActiveTrip: Trip | null = {
-  id: "t_active",
-  origin: "Current location",
-  destination: "Bandra West",
-  date: "Today",
-  departureTime: "8:30 PM",
-  travelMode: "Walk",
-  duration: "32 min",
-  status: "Active",
-  checkInEnabled: true,
-  selectedRoute: "Route 01 (Suburban Street)",
-  context: {
-    lights: "Good lighting",
-    activity: "Active area",
-    help: "3 help points",
-    reports: "No recent reports",
-    freshness: "Recently updated",
-  },
-};
 
 const mockPastTrips: Trip[] = [
   {
@@ -131,6 +113,7 @@ const mockPastTrips: Trip[] = [
 type FilterType = "All" | "Completed" | "Cancelled";
 
 export default function TripsPage() {
+  const { activeTrip, locationTrackingStatus } = useJourney();
   const [filter, setFilter] = useState<FilterType>("All");
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
@@ -172,16 +155,16 @@ export default function TripsPage() {
         </div>
 
         {/* ─── Active Journey Section ─── */}
-        {mockActiveTrip && (
-          <section className="mb-10">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">
-              Active journey
-            </h2>
+        <section className="mb-10">
+          <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">
+            Active journey
+          </h2>
+          {activeTrip ? (
             <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm ring-1 ring-emerald-600/10 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-slate-900">{mockActiveTrip.destination}</h3>
+                    <h3 className="text-lg font-bold text-slate-900">{activeTrip.destination}</h3>
                     <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
                       <span className="relative flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -191,21 +174,36 @@ export default function TripsPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-slate-500">
-                    Started at {mockActiveTrip.departureTime} · {mockActiveTrip.travelMode}
+                    Started at {activeTrip.departureTime} · {activeTrip.travelMode}
                   </p>
-                  
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
                     <div className="rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
-                      {mockActiveTrip.checkInEnabled ? "Check-in enabled" : "Check-in not enabled"}
+                      {activeTrip.checkInEnabled ? "Check-in enabled" : "Check-in not enabled"}
                     </div>
                     <div className="text-[11px] font-semibold text-slate-500">
-                      {mockActiveTrip.selectedRoute}
+                      {activeTrip.selectedRoute}
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 border-l border-slate-200 pl-2">
+                      <MapPin className="h-3 w-3" />
+                      Location: {locationTrackingStatus}
                     </div>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => setSelectedTrip(mockActiveTrip)}
+                  onClick={() => setSelectedTrip({
+                    id: activeTrip.id,
+                    origin: activeTrip.origin,
+                    destination: activeTrip.destination,
+                    date: activeTrip.date,
+                    departureTime: activeTrip.departureTime,
+                    travelMode: activeTrip.travelMode,
+                    duration: activeTrip.eta,
+                    status: "Active",
+                    checkInEnabled: activeTrip.checkInEnabled,
+                    selectedRoute: activeTrip.selectedRoute,
+                    context: activeTrip.context
+                  })}
                   className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md"
                 >
                   View Journey
@@ -213,8 +211,24 @@ export default function TripsPage() {
                 </button>
               </div>
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-10 text-center">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-slate-400">
+                <Navigation className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-700">No active journey</h3>
+              <p className="mt-1 max-w-[250px] text-xs text-slate-500">
+                You don't have an active journey right now.
+              </p>
+              <a
+                href="/home"
+                className="mt-4 rounded-lg bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                Plan a Journey
+              </a>
+            </div>
+          )}
+        </section>
 
         {/* ─── Previous Trips Section ─── */}
         <section>
