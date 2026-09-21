@@ -4,13 +4,15 @@ import RoutePlanner from "../components/app/RoutePlanner";
 import Places from "../components/app/Places";
 import RouteResults from "../components/app/RouteResults";
 import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Navigation, MapPin } from "lucide-react";
+import { useJourney } from "../context/JourneyContext";
 
 function getTodayLabel() {
   return "Today";
 }
 
 export default function HomePage() {
+  const { activeTrip, locationTrackingStatus } = useJourney();
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toValue, setToValue] = useState("");
@@ -60,11 +62,24 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          {/* Data freshness badge */}
-          <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs text-slate-500 shadow-sm sm:flex">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-            <span>Data freshness</span>
-            <span className="font-semibold text-slate-700">Updated 5 min ago</span>
+          {/* ─── Active Journey / Data freshness badge ─── */}
+          <div className="flex flex-col gap-2 sm:items-end">
+            {activeTrip && (
+              <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs text-emerald-700 shadow-sm sm:flex">
+                <Navigation className="h-3.5 w-3.5" />
+                <span className="font-bold">Journey active</span>
+                <span className="opacity-60">•</span>
+                <MapPin className="h-3 w-3" />
+                <span className="font-semibold">
+                  {locationTrackingStatus === "tracking" ? "Live location on" : "Location " + locationTrackingStatus}
+                </span>
+              </div>
+            )}
+            <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs text-slate-500 shadow-sm sm:flex">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              <span>Data freshness</span>
+              <span className="font-semibold text-slate-700">Updated 5 min ago</span>
+            </div>
           </div>
         </div>
 
@@ -97,6 +112,9 @@ export default function HomePage() {
             <RouteResults
               travelTime={travelTime}
               onChangeTravelTime={handleChangeTravelTime}
+              origin={fromValue}
+              destination={toValue}
+              mode={mode}
             />
           </motion.div>
         )}

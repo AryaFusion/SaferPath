@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Clock,
   Navigation,
   Lightbulb,
   Activity,
@@ -15,6 +14,7 @@ import {
   Info,
   RefreshCw,
 } from "lucide-react";
+import { useJourney } from "../../context/JourneyContext";
 
 // ─── Mock data keyed by time bucket ─────────────────────────────────────────
 
@@ -214,9 +214,15 @@ const routeColors = ["#10b981", "#3b82f6", "#f59e0b"];
 export default function RouteResults({
   travelTime,
   onChangeTravelTime,
+  origin,
+  destination,
+  mode,
 }: {
   travelTime: string;
   onChangeTravelTime?: () => void;
+  origin?: string;
+  destination?: string;
+  mode?: string;
 }) {
   const bucket = getTimeBucket(travelTime);
   const currentRoutes = routesData[bucket];
@@ -227,8 +233,9 @@ export default function RouteResults({
 
   // Journey states
   const [showCheckInModal, setShowCheckInModal] = useState(false);
-  const [isActiveJourney, setIsActiveJourney] = useState(false);
-  const [deviationState, setDeviationState] = useState(false);
+  const [checkInEnabled, setCheckInEnabled] = useState(false);
+  const { activeTrip, startJourney, endJourney, triggerDeviation, isDeviationActive, clearDeviation } = useJourney();
+  const isActiveJourney = !!activeTrip;
 
   const activeRoute = currentRoutes.find((r) => r.id === selectedRoute) ?? currentRoutes[0];
 
@@ -547,7 +554,12 @@ export default function RouteResults({
                 </p>
                 <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <label className="flex cursor-pointer items-start gap-3">
-                    <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600" />
+                    <input 
+                      type="checkbox" 
+                      checked={checkInEnabled}
+                      onChange={(e) => setCheckInEnabled(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600" 
+                    />
                     <div>
                       <span className="block text-sm font-semibold text-slate-900">Enable check-in for this journey</span>
                       <span className="mt-0.5 block text-xs text-slate-500">Optional. SaferPath will prompt you to confirm you've arrived safely.</span>
@@ -557,7 +569,20 @@ export default function RouteResults({
                 <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <button onClick={() => setShowCheckInModal(false)} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
                   <button
-                    onClick={() => { setShowCheckInModal(false); setIsActiveJourney(true); }}
+                    onClick={() => {
+                      setShowCheckInModal(false);
+                      startJourney({
+                        origin: origin || "Current location",
+                        destination: destination || "Selected Destination",
+                        travelMode: mode || "Walk",
+                        departureTime: travelTime,
+                        date: "Today",
+                        selectedRoute: activeRoute.name,
+                        checkInEnabled,
+                        eta: activeRoute.time,
+                        context: activeRoute.segment,
+                      });
+                    }}
                     className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700"
                   >
                     Confirm & Start <Navigation className="h-4 w-4" />
@@ -588,10 +613,10 @@ export default function RouteResults({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => setDeviationState(true)} className="rounded-lg bg-emerald-800/50 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-800">
+              <button onClick={() => triggerDeviation()} className="rounded-lg bg-emerald-800/50 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-800">
                 Trigger Deviation
               </button>
-              <button onClick={() => setIsActiveJourney(false)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold hover:bg-emerald-500">
+              <button onClick={() => endJourney()} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold hover:bg-emerald-500">
                 End
               </button>
             </div>
@@ -601,7 +626,7 @@ export default function RouteResults({
 
       {/* ─── Deviation Modal ─── */}
       <AnimatePresence>
-        {deviationState && (
+        {isDeviationActive && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-md" />
             <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -617,8 +642,8 @@ export default function RouteResults({
                 <h3 className="text-center text-lg font-bold text-slate-900">You're outside your planned route.</h3>
                 <p className="mt-2 text-center text-sm text-slate-500">Are you okay?</p>
                 <div className="mt-6 flex flex-col gap-3">
-                  <button onClick={() => setDeviationState(false)} className="w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200">I'm okay</button>
-                  <button onClick={() => setDeviationState(false)} className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-red-700 hover:shadow-md">I need help</button>
+                  <button onClick={() => clearDeviation()} className="w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200">I'm okay</button>
+                  <button onClick={() => clearDeviation()} className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-red-700 hover:shadow-md">I need help</button>
                 </div>
               </motion.div>
             </div>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const navLinks = [
   { label: "How It Works", href: "#how-it-works" },
@@ -9,6 +11,7 @@ const navLinks = [
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const closeMenu = () => {
     setIsMenuOpen(false);
@@ -71,12 +74,21 @@ export default function Navbar() {
             </a>
           ))}
 
-          <a
-            href="/login"
-            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-slate-800 hover:shadow-md"
-          >
-            Login
-          </a>
+          {isAuthenticated ? (
+            <Link
+              to="/home"
+              className="rounded-full bg-emerald-700 px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-emerald-800 hover:shadow-md"
+            >
+              Open App
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-slate-800 hover:shadow-md"
+            >
+              Login
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -117,13 +129,23 @@ export default function Navbar() {
             </a>
           ))}
 
-          <a
-            href="/login"
-            onClick={closeMenu}
-            className="mt-3 rounded-xl bg-slate-900 px-3 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-slate-800"
-          >
-            Login
-          </a>
+          {isAuthenticated ? (
+            <Link
+              to="/home"
+              onClick={closeMenu}
+              className="mt-3 rounded-xl bg-emerald-700 px-3 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-emerald-800"
+            >
+              Open App
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              onClick={closeMenu}
+              className="mt-3 rounded-xl bg-slate-900 px-3 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </motion.header>

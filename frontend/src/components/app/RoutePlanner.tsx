@@ -1,4 +1,5 @@
-import { useId, useState, useRef, useEffect, MutableRefObject } from "react";
+import { useId, useState, useRef, useEffect } from "react";
+import type { MutableRefObject } from "react";
 import { MapPin, ArrowRightLeft, Clock, Calendar, Navigation, ChevronDown, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -223,15 +224,7 @@ export default function RoutePlanner({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function leaveNow() {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const suffix = h >= 12 ? "PM" : "AM";
-    const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    const timeStr = `${hour}:${m.toString().padStart(2, "0")} ${suffix}`;
-    handleTimeChange({ date: getTodayLabel(), time: timeStr });
-  }
+
 
   const displayValue = formatTravelTime(travelTime.date, travelTime.time);
 
@@ -259,6 +252,8 @@ export default function RoutePlanner({
               </div>
               <input
                 id={fromId}
+                name="saferpath_origin_field"
+                autoComplete="new-password"
                 type="text"
                 value={fromValue}
                 onChange={(e) => setFromValue(e.target.value)}
@@ -287,6 +282,8 @@ export default function RoutePlanner({
               </div>
               <input
                 id={toId}
+                name="saferpath_dest_field"
+                autoComplete="new-password"
                 type="text"
                 value={toValue}
                 onChange={(e) => setToValue(e.target.value)}
@@ -299,7 +296,7 @@ export default function RoutePlanner({
 
           {/* Travel mode */}
           <div className="flex shrink-0 gap-1 rounded-xl bg-slate-100/70 p-1">
-            {["Walk", "Transit", "Cab"].map((m) => (
+            {["Walk", "Public Transport", "Cab"].map((m) => (
               <button
                 key={m}
                 type="button"
@@ -362,6 +359,8 @@ export default function RoutePlanner({
               <div className="h-2 w-2 rounded-full border-[2px] border-emerald-600 bg-white" />
             </div>
             <input
+              name="saferpath_origin_mobile"
+              autoComplete="new-password"
               type="text"
               value={fromValue}
               onChange={(e) => setFromValue(e.target.value)}
@@ -385,6 +384,8 @@ export default function RoutePlanner({
               <MapPin className="h-4 w-4 text-emerald-600" />
             </div>
             <input
+              name="saferpath_dest_mobile"
+              autoComplete="new-password"
               type="text"
               value={toValue}
               onChange={(e) => setToValue(e.target.value)}
@@ -398,7 +399,7 @@ export default function RoutePlanner({
           <div>
             <span className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-500">Travel mode</span>
             <div className="flex gap-1.5 rounded-xl bg-slate-100/70 p-1">
-              {["Walk", "Transit", "Cab"].map((m) => (
+              {["Walk", "Public Transport", "Cab"].map((m) => (
                 <button
                   key={m}
                   type="button"
