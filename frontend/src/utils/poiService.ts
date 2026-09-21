@@ -58,14 +58,16 @@ export async function geocodeSearch(query: string): Promise<{lat: number, lon: n
   }
 }
 
-function mapOSMToSupportPoints(elements: any[], centerLat: number, centerLon: number): SupportPoint[] {
-  return elements.map((el, i) => {
+function mapOSMToSupportPoints(elements: unknown[], _centerLat: number, _centerLon: number): SupportPoint[] {
+  void _centerLat; void _centerLon;
+  return elements.map((el) => {
+    const point = el as { id: string | number; lat: number; lon: number; tags?: Record<string, string> };
     let category: SupportCategory = "Support";
     let type = "Support Point";
     let desc = "Local support point";
 
-    const amenity = el.tags?.amenity;
-    const healthcare = el.tags?.healthcare;
+    const amenity = point.tags?.amenity;
+    const healthcare = point.tags?.healthcare;
 
     if (amenity === "police") {
       category = "Police";
@@ -85,25 +87,27 @@ function mapOSMToSupportPoints(elements: any[], centerLat: number, centerLon: nu
       desc = "Medical clinic.";
     }
 
-    const name = el.tags?.name || `Unnamed ${type}`;
-    const address = el.tags?.["addr:street"] 
-      ? `${el.tags["addr:street"]} ${el.tags["addr:housenumber"] || ""}`.trim() 
-      : (el.tags?.["addr:full"] || "Address unavailable");
+    const name = point.tags?.name || `Unnamed ${type}`;
+    const address = point.tags?.["addr:street"]
+      ? `${point.tags["addr:street"]} ${point.tags["addr:housenumber"] || ""}`.trim()
+      : (point.tags?.["addr:full"] || "Address unavailable");
 
     return {
-      id: `osm_${el.id}`,
+      id: `osm_${point.id}`,
       name,
       type,
       category,
       address,
-      latitude: el.lat,
-      longitude: el.lon,
+      latitude: point.lat,
+      longitude: point.lon,
       distance: "", // Set by UI
       description: desc,
-      verified: true,
-      verificationDate: new Date().toLocaleDateString("en-IN", { weekday: "short", month: "short", day: "numeric" }),
-      freshness: "Live OSM data",
+      verified: null,
+      verificationDate: null,
+      freshness: "Source data; freshness unavailable",
       routeRelevant: false, 
+      routeProximity: null,
+      distanceMeters: 0,
     };
   });
 }

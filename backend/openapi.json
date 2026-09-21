@@ -1,0 +1,4507 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SaferPath API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Health",
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/readiness": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Readiness",
+        "operationId": "readiness_v1_readiness_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Readiness V1 Readiness Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/help-points/nearby": {
+      "get": {
+        "tags": [
+          "help-points"
+        ],
+        "summary": "Nearby Help Points",
+        "operationId": "nearby_help_points_v1_help_points_nearby_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          },
+          {
+            "name": "radius_meters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Radius Meters"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "accessibility",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accessibility"
+            }
+          },
+          {
+            "name": "verified_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Verified Only"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/echo": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Echo",
+        "operationId": "echo_v1_echo_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EchoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Echo V1 Echo Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/routes/{route_id}/context": {
+      "get": {
+        "tags": [
+          "context"
+        ],
+        "summary": "Route Context",
+        "operationId": "route_context_v1_routes__route_id__context_get",
+        "parameters": [
+          {
+            "name": "route_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Route Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/routes/compare": {
+      "post": {
+        "tags": [
+          "routing"
+        ],
+        "summary": "Create Route Request",
+        "operationId": "create_route_request_v1_routes_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteComparisonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteComparisonResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key conflict"
+          },
+          "422": {
+            "description": "Invalid request or outside pilot area"
+          },
+          "502": {
+            "description": "Malformed routing provider response"
+          },
+          "503": {
+            "description": "Routing provider unavailable"
+          },
+          "504": {
+            "description": "Routing provider timeout"
+          }
+        }
+      }
+    },
+    "/v1/reports": {
+      "post": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Create Report",
+        "operationId": "create_report_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/{report_id}": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Get Report",
+        "operationId": "get_report_v1_reports__report_id__get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/{report_id}/evidence/upload-authorizations": {
+      "post": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Authorize Evidence",
+        "operationId": "authorize_evidence_v1_reports__report_id__evidence_upload_authorizations_post",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceAuthorizationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/{report_id}/evidence/{evidence_id}/complete": {
+      "post": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Complete Evidence",
+        "operationId": "complete_evidence_v1_reports__report_id__evidence__evidence_id__complete_post",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceCompletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/{report_id}/evidence": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "List Evidence",
+        "operationId": "list_evidence_v1_reports__report_id__evidence_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/{report_id}/evidence/{evidence_id}": {
+      "delete": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Delete Evidence",
+        "operationId": "delete_evidence_v1_reports__report_id__evidence__evidence_id__delete",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emergency/handoff/{handoff_id}/action": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Emergency Handoff Action",
+        "operationId": "emergency_handoff_action_v1_emergency_handoff__handoff_id__action_post",
+        "parameters": [
+          {
+            "name": "handoff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Handoff Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyHandoffActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyHandoffSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emergency/handoff": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Emergency Handoff",
+        "operationId": "create_emergency_handoff_v1_emergency_handoff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyHandoffCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyHandoffSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Trip",
+        "operationId": "create_trip_v1_trips_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/events": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Trip Event",
+        "operationId": "trip_event_v1_trips__trip_id__events_post",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/check-in": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Check In",
+        "operationId": "check_in_v1_trips__trip_id__check_in_post",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/stop": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Stop Trip",
+        "operationId": "stop_trip_v1_trips__trip_id__stop_post",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip",
+        "operationId": "get_trip_v1_trips__trip_id__get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPollResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/stream": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Trip Stream",
+        "operationId": "trip_stream_v1_trips__trip_id__stream_get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/deviation-response": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Respond To Deviation",
+        "operationId": "respond_to_deviation_v1_trips__trip_id__deviation_response_post",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviationResponseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviationResponseResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trusted-contacts": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Trusted Contact",
+        "operationId": "create_trusted_contact_v1_trusted_contacts_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrustedContactCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrustedContactResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "List Trusted Contacts",
+        "operationId": "list_trusted_contacts_v1_trusted_contacts_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrustedContactResponse"
+                  },
+                  "title": "Response List Trusted Contacts V1 Trusted Contacts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trusted-contacts/{contact_id}/verify": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Verify Trusted Contact",
+        "operationId": "verify_trusted_contact_v1_trusted_contacts__contact_id__verify_post",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Contact Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrustedContactVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrustedContactResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trusted-contacts/{contact_id}/revoke": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Revoke Trusted Contact",
+        "operationId": "revoke_trusted_contact_v1_trusted_contacts__contact_id__revoke_post",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Contact Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrustedContactResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sharing-grants": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Sharing Grant",
+        "operationId": "create_sharing_grant_v1_sharing_grants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharingGrantCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharingGrantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sharing-grants/{grant_id}/revoke": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Revoke Sharing Grant",
+        "operationId": "revoke_sharing_grant_v1_sharing_grants__grant_id__revoke_post",
+        "parameters": [
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Grant Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharingGrantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/shared-trips/{share_token}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Shared Trip",
+        "operationId": "get_shared_trip_v1_shared_trips__share_token__get",
+        "parameters": [
+          {
+            "name": "share_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Share Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPollResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/shared-trips/{share_token}/stream": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Shared Trip Stream",
+        "operationId": "shared_trip_stream_v1_shared_trips__share_token__stream_get",
+        "parameters": [
+          {
+            "name": "share_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Share Token"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/events": {
+      "post": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Ingest",
+        "operationId": "ingest_v1_analytics_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ingest V1 Analytics Events Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/summary": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Summary",
+        "operationId": "summary_v1_analytics_summary_get",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "X-Analytics-Admin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Analytics-Admin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Summary V1 Analytics Summary Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/allowlist": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Allowlist",
+        "operationId": "allowlist_v1_analytics_allowlist_get",
+        "parameters": [
+          {
+            "name": "X-Analytics-Admin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Analytics-Admin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Allowlist V1 Analytics Allowlist Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/experiments": {
+      "post": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Create Experiment",
+        "operationId": "create_experiment_v1_analytics_experiments_post",
+        "parameters": [
+          {
+            "name": "X-Analytics-Admin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Analytics-Admin"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Experiment V1 Analytics Experiments Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/experiments/{experiment_key}/assign": {
+      "post": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Assignment",
+        "operationId": "assignment_v1_analytics_experiments__experiment_key__assign_post",
+        "parameters": [
+          {
+            "name": "experiment_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Experiment Key"
+            }
+          },
+          {
+            "name": "X-Subject-Reference",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "X-Subject-Reference"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Assignment V1 Analytics Experiments  Experiment Key  Assign Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/codes": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Request Code",
+        "operationId": "request_code_v1_auth_codes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Request Code V1 Auth Codes Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/verify": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Verify",
+        "operationId": "verify_v1_auth_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/revoke": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Revoke",
+        "operationId": "revoke_v1_auth_revoke_post",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/me": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Me",
+        "operationId": "me_v1_auth_me_get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/profile": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Get Profile",
+        "operationId": "get_profile_v1_profile_get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Update Profile",
+        "operationId": "update_profile_v1_profile_put",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Update Profile",
+        "operationId": "update_profile_v1_profile_patch",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/onboarding/status": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Onboarding Status",
+        "operationId": "onboarding_status_v1_onboarding_status_get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/consents": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Create Consent",
+        "operationId": "create_consent_v1_consents_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "List Consents",
+        "operationId": "list_consents_v1_consents_get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConsentResponse"
+                  },
+                  "title": "Response List Consents V1 Consents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/consents/{consent_id}/withdraw": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Withdraw Consent",
+        "operationId": "withdraw_consent_v1_consents__consent_id__withdraw_post",
+        "parameters": [
+          {
+            "name": "consent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Consent Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountResponse": {
+        "properties": {
+          "public_id": {
+            "type": "string",
+            "title": "Public Id"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "verified_identifier": {
+            "type": "boolean",
+            "title": "Verified Identifier",
+            "default": true
+          },
+          "account_status": {
+            "type": "string",
+            "title": "Account Status"
+          },
+          "onboarding_complete": {
+            "type": "boolean",
+            "title": "Onboarding Complete"
+          },
+          "route_planning_available": {
+            "type": "boolean",
+            "title": "Route Planning Available",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "public_id",
+          "account_status",
+          "onboarding_complete"
+        ],
+        "title": "AccountResponse"
+      },
+      "AnalyticsEventRequest": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Event Id"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "actor_class": {
+            "type": "string",
+            "title": "Actor Class"
+          },
+          "dimensions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Dimensions"
+          },
+          "subject_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Reference"
+          },
+          "analytics_consent": {
+            "type": "boolean",
+            "title": "Analytics Consent"
+          },
+          "consent_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_type",
+          "actor_class",
+          "analytics_consent"
+        ],
+        "title": "AnalyticsEventRequest"
+      },
+      "CodeRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "CodeRequest"
+      },
+      "ConsentCreate": {
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "ROUTE_PLANNING_LOCATION",
+              "ACTIVE_TRIP_LOCATION",
+              "TRUSTED_CONTACT_SHARING",
+              "PUBLIC_REPORT_PUBLICATION",
+              "PRIVATE_EVIDENCE_RETENTION",
+              "NOTIFICATIONS",
+              "EMERGENCY_HANDOFF",
+              "PROVIDER_INTEGRATION",
+              "ANALYTICS",
+              "PERSONALISATION"
+            ],
+            "title": "Purpose"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Scope"
+          },
+          "policy_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Policy Version"
+          },
+          "granted": {
+            "type": "boolean",
+            "title": "Granted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "purpose",
+          "policy_version",
+          "granted"
+        ],
+        "title": "ConsentCreate"
+      },
+      "ConsentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Scope"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "granted": {
+            "type": "boolean",
+            "title": "Granted"
+          },
+          "granted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Granted At"
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "effective": {
+            "type": "boolean",
+            "title": "Effective"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "purpose",
+          "scope",
+          "policy_version",
+          "granted",
+          "granted_at",
+          "withdrawn_at",
+          "effective"
+        ],
+        "title": "ConsentResponse"
+      },
+      "DeviationResponseRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "response": {
+            "type": "string",
+            "pattern": "^(CONFIRM_ROUTE_CHANGE|REJECT_ROUTE_CHANGE|UNSURE)$",
+            "title": "Response"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "alternate_location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Point"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "idempotency_key",
+          "response",
+          "occurred_at"
+        ],
+        "title": "DeviationResponseRequest"
+      },
+      "DeviationResponseResult": {
+        "properties": {
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "deviation_id": {
+            "type": "string",
+            "title": "Deviation Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_response": {
+            "type": "string",
+            "title": "User Response"
+          },
+          "alternate_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternate Route Id"
+          },
+          "context_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Band"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trip_id",
+          "deviation_id",
+          "status",
+          "user_response"
+        ],
+        "title": "DeviationResponseResult"
+      },
+      "DeviationSummary": {
+        "properties": {
+          "deviation_id": {
+            "type": "string",
+            "title": "Deviation Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          },
+          "confirmation_required": {
+            "type": "boolean",
+            "title": "Confirmation Required"
+          },
+          "user_response": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Response"
+          },
+          "alternate_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternate Route Id"
+          },
+          "context_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Band"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deviation_id",
+          "status",
+          "detected_at",
+          "confirmation_required"
+        ],
+        "title": "DeviationSummary"
+      },
+      "EchoRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "EchoRequest"
+      },
+      "EmergencyHandoffActionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^(CALL_INITIATED|CALL_OPENED|CANCEL)$",
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "idempotency_key",
+          "action"
+        ],
+        "title": "EmergencyHandoffActionRequest"
+      },
+      "EmergencyHandoffCreateRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Trip Id"
+          },
+          "method": {
+            "type": "string",
+            "pattern": "^(OFFICIAL_CALL|OFFICIAL_DEEP_LINK|APPROVED_INTEGRATION)$",
+            "title": "Method"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "explicit_user_action": {
+            "type": "boolean",
+            "title": "Explicit User Action"
+          },
+          "consent_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Consent Version"
+          },
+          "consent_source": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Consent Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "trip_id",
+          "method",
+          "idempotency_key",
+          "explicit_user_action",
+          "consent_version",
+          "consent_source"
+        ],
+        "title": "EmergencyHandoffCreateRequest"
+      },
+      "EmergencyHandoffSummary": {
+        "properties": {
+          "handoff_id": {
+            "type": "string",
+            "title": "Handoff Id"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested At"
+          },
+          "next_action": {
+            "type": "string",
+            "title": "Next Action"
+          },
+          "provider_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handoff_id",
+          "method",
+          "status",
+          "requested_at",
+          "next_action"
+        ],
+        "title": "EmergencyHandoffSummary"
+      },
+      "EvidenceAuthorizationRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "content_type": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "idempotency_key",
+          "content_type",
+          "size_bytes"
+        ],
+        "title": "EvidenceAuthorizationRequest"
+      },
+      "EvidenceCompletionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "upload_token": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 16,
+            "title": "Upload Token"
+          },
+          "content_base64": {
+            "type": "string",
+            "maxLength": 14000000,
+            "title": "Content Base64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "upload_token",
+          "content_base64"
+        ],
+        "title": "EvidenceCompletionRequest"
+      },
+      "ExperimentRequest": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9_-]+$",
+            "title": "Key"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/VariantRequest"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Variants"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "version",
+          "variants"
+        ],
+        "title": "ExperimentRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ModerationStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "ACCEPTED_PUBLIC_CONTEXT",
+          "ACCEPTED_RESTRICTED_EVIDENCE",
+          "MERGED",
+          "REJECTED",
+          "CORRECTED",
+          "EXPIRED",
+          "ESCALATED"
+        ],
+        "title": "ModerationStatus"
+      },
+      "OnboardingStatus": {
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated",
+            "default": true
+          },
+          "profile_complete": {
+            "type": "boolean",
+            "title": "Profile Complete"
+          },
+          "required_actions_remaining": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Actions Remaining"
+          },
+          "optional_actions_available": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Optional Actions Available"
+          },
+          "route_planning_available": {
+            "type": "boolean",
+            "title": "Route Planning Available",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile_complete",
+          "required_actions_remaining",
+          "optional_actions_available"
+        ],
+        "title": "OnboardingStatus"
+      },
+      "Point": {
+        "properties": {
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "longitude",
+          "latitude"
+        ],
+        "title": "Point"
+      },
+      "ProfileResponse": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "traveller_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traveller Type"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "accessibility_preferences": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Accessibility Preferences"
+          },
+          "profile_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Profile Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "traveller_type",
+          "language",
+          "accessibility_preferences",
+          "profile_data"
+        ],
+        "title": "ProfileResponse"
+      },
+      "ProfileUpdate": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "traveller_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "STUDENT",
+                  "EMPLOYEE",
+                  "DAILY_USE",
+                  "SKIP"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traveller Type"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "accessibility_preferences": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accessibility Preferences"
+          },
+          "profile_data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Data"
+          },
+          "clear_fields": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "display_name",
+                "traveller_type",
+                "language",
+                "accessibility_preferences",
+                "profile_data"
+              ]
+            },
+            "type": "array",
+            "uniqueItems": true,
+            "title": "Clear Fields"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProfileUpdate"
+      },
+      "PublicationIntent": {
+        "type": "string",
+        "enum": [
+          "PUBLIC_CONTEXT",
+          "RESTRICTED_EVIDENCE"
+        ],
+        "title": "PublicationIntent"
+      },
+      "ReportCategory": {
+        "type": "string",
+        "enum": [
+          "LIGHTING",
+          "ACCESSIBILITY",
+          "PEDESTRIAN_INFRASTRUCTURE",
+          "ACTIVITY_CONTEXT",
+          "TRANSIT_CONTEXT"
+        ],
+        "title": "ReportCategory"
+      },
+      "ReportCreateRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ReportCategory"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "route_segment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Segment Id"
+          },
+          "coarse_area": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(MUMBAI_(SOUTH|CENTRAL|NORTH|EAST|WEST))$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coarse Area"
+          },
+          "publication_intent": {
+            "$ref": "#/components/schemas/PublicationIntent",
+            "default": "RESTRICTED_EVIDENCE"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "idempotency_key",
+          "category",
+          "observed_at"
+        ],
+        "title": "ReportCreateRequest",
+        "description": "No free text or coordinates: BE-05A stores structured, coarse evidence only."
+      },
+      "ReportResponse": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ReportCategory"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "publication_intent": {
+            "$ref": "#/components/schemas/PublicationIntent"
+          },
+          "moderation_status": {
+            "$ref": "#/components/schemas/ModerationStatus"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "coarse_area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coarse Area"
+          },
+          "reused": {
+            "type": "boolean",
+            "title": "Reused",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "reference",
+          "category",
+          "observed_at",
+          "submitted_at",
+          "publication_intent",
+          "moderation_status",
+          "expires_at",
+          "coarse_area"
+        ],
+        "title": "ReportResponse"
+      },
+      "RouteComparisonRequest": {
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Timezone"
+          },
+          "requested_local_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested Local Time"
+          },
+          "time_mode": {
+            "type": "string",
+            "pattern": "^(departure|arrival)$",
+            "title": "Time Mode"
+          },
+          "travel_mode": {
+            "type": "string",
+            "pattern": "^walking$",
+            "title": "Travel Mode",
+            "default": "walking"
+          },
+          "route_preference": {
+            "type": "string",
+            "pattern": "^(fastest|contextual|balanced|accessible)$",
+            "title": "Route Preference",
+            "default": "balanced"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "timezone",
+          "requested_local_time",
+          "time_mode",
+          "idempotency_key"
+        ],
+        "title": "RouteComparisonRequest"
+      },
+      "RouteComparisonResponse": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "ready"
+          },
+          "reused": {
+            "type": "boolean",
+            "title": "Reused"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "requested_local_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested Local Time"
+          },
+          "time_mode": {
+            "type": "string",
+            "title": "Time Mode"
+          },
+          "travel_mode": {
+            "type": "string",
+            "title": "Travel Mode"
+          },
+          "route_preference": {
+            "type": "string",
+            "title": "Route Preference"
+          },
+          "provider_source": {
+            "type": "string",
+            "title": "Provider Source"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/RouteResponse"
+            },
+            "type": "array",
+            "title": "Routes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "reused",
+          "expires_at",
+          "timezone",
+          "requested_local_time",
+          "time_mode",
+          "travel_mode",
+          "route_preference",
+          "provider_source",
+          "routes"
+        ],
+        "title": "RouteComparisonResponse"
+      },
+      "RouteContextResponse": {
+        "properties": {
+          "route_id": {
+            "type": "string",
+            "title": "Route Id"
+          },
+          "context_version": {
+            "type": "string",
+            "title": "Context Version"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_version": {
+            "type": "string",
+            "title": "Feature Version"
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "requested_local_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested Local Time"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "time_mode": {
+            "type": "string",
+            "title": "Time Mode"
+          },
+          "route_context_band": {
+            "type": "string",
+            "title": "Route Context Band"
+          },
+          "route_confidence": {
+            "type": "string",
+            "title": "Route Confidence"
+          },
+          "route_coverage": {
+            "type": "string",
+            "title": "Route Coverage"
+          },
+          "freshness_summary": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Freshness Summary"
+          },
+          "affected_segments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Affected Segments"
+          },
+          "explanation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Explanation"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentContext"
+            },
+            "type": "array",
+            "title": "Segments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "route_id",
+          "context_version",
+          "model_version",
+          "feature_version",
+          "rule_version",
+          "requested_local_time",
+          "timezone",
+          "time_mode",
+          "route_context_band",
+          "route_confidence",
+          "route_coverage",
+          "freshness_summary",
+          "affected_segments",
+          "explanation",
+          "segments"
+        ],
+        "title": "RouteContextResponse"
+      },
+      "RouteResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "provider_metadata": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Provider Metadata"
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "title": "Duration Seconds"
+          },
+          "distance_meters": {
+            "type": "integer",
+            "title": "Distance Meters"
+          },
+          "geometry": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Geometry"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentResponse"
+            },
+            "type": "array",
+            "title": "Segments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "provider",
+          "provider_metadata",
+          "duration_seconds",
+          "distance_meters",
+          "geometry",
+          "segments"
+        ],
+        "title": "RouteResponse"
+      },
+      "SegmentContext": {
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "title": "Segment Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "expected_local_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expected Local Time"
+          },
+          "context_band": {
+            "type": "string",
+            "title": "Context Band"
+          },
+          "confidence": {
+            "type": "string",
+            "title": "Confidence"
+          },
+          "coverage": {
+            "type": "string",
+            "title": "Coverage"
+          },
+          "source_classes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Classes"
+          },
+          "strongest_support": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strongest Support"
+          },
+          "caution": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Caution"
+          },
+          "unknown": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknown"
+          },
+          "stale_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Stale Groups",
+            "default": []
+          },
+          "freshness": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Freshness"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment_id",
+          "sequence",
+          "expected_local_time",
+          "context_band",
+          "confidence",
+          "coverage",
+          "source_classes",
+          "strongest_support",
+          "caution",
+          "unknown",
+          "freshness"
+        ],
+        "title": "SegmentContext"
+      },
+      "SegmentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "geometry": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Geometry"
+          },
+          "length_meters": {
+            "type": "integer",
+            "title": "Length Meters"
+          },
+          "travel_seconds": {
+            "type": "integer",
+            "title": "Travel Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "geometry",
+          "length_meters",
+          "travel_seconds"
+        ],
+        "title": "SegmentResponse"
+      },
+      "SessionResponse": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "title": "Session Token"
+          },
+          "account": {
+            "$ref": "#/components/schemas/AccountResponse"
+          },
+          "onboarding_required": {
+            "type": "boolean",
+            "title": "Onboarding Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token",
+          "account",
+          "onboarding_required"
+        ],
+        "title": "SessionResponse"
+      },
+      "SharingGrantCreateRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Trip Id"
+          },
+          "contact_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Contact Id"
+          },
+          "scope": {
+            "type": "string",
+            "pattern": "^(STATUS_ONLY|LOCATION|TRIP_CONTEXT)$",
+            "title": "Scope",
+            "default": "STATUS_ONLY"
+          },
+          "ttl_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 168.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ttl Hours"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "trip_id",
+          "contact_id"
+        ],
+        "title": "SharingGrantCreateRequest"
+      },
+      "SharingGrantResponse": {
+        "properties": {
+          "grant_id": {
+            "type": "string",
+            "title": "Grant Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "contact_id": {
+            "type": "string",
+            "title": "Contact Id"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "share_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grant_id",
+          "trip_id",
+          "contact_id",
+          "scope",
+          "status",
+          "issued_at",
+          "expires_at"
+        ],
+        "title": "SharingGrantResponse"
+      },
+      "TripActionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "event_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8,
+            "title": "Event Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "event_id",
+          "idempotency_key",
+          "occurred_at"
+        ],
+        "title": "TripActionRequest"
+      },
+      "TripCreateRequest": {
+        "properties": {
+          "route_id": {
+            "type": "string",
+            "title": "Route Id"
+          },
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "planned_arrival": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Planned Arrival"
+          },
+          "planned_departure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Departure"
+          },
+          "travel_mode": {
+            "type": "string",
+            "pattern": "^walking$",
+            "title": "Travel Mode"
+          },
+          "active_trip_consent": {
+            "type": "boolean",
+            "title": "Active Trip Consent"
+          },
+          "consent_reference": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Consent Reference"
+          },
+          "consent_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Consent Version"
+          },
+          "sharing_scope": {
+            "type": "string",
+            "pattern": "^(STATUS_ONLY|LOCATION)$",
+            "title": "Sharing Scope",
+            "default": "STATUS_ONLY"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "route_id",
+          "session_id",
+          "planned_arrival",
+          "travel_mode",
+          "active_trip_consent",
+          "consent_reference",
+          "consent_version"
+        ],
+        "title": "TripCreateRequest"
+      },
+      "TripEventRequest": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8,
+            "title": "Event Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "event_type": {
+            "type": "string",
+            "pattern": "^(TRIP_UPDATED|USER_CONFIRMED_OK|SHARING_GRANT_REVOKED)$",
+            "title": "Event Type"
+          },
+          "actor": {
+            "type": "string",
+            "pattern": "^USER$",
+            "title": "Actor",
+            "default": "USER"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Point"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "idempotency_key",
+          "event_type",
+          "occurred_at"
+        ],
+        "title": "TripEventRequest"
+      },
+      "TripPollResponse": {
+        "properties": {
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "selected_route_id": {
+            "type": "string",
+            "title": "Selected Route Id"
+          },
+          "planned_arrival": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Planned Arrival"
+          },
+          "travel_mode": {
+            "type": "string",
+            "title": "Travel Mode"
+          },
+          "sharing_scope": {
+            "type": "string",
+            "title": "Sharing Scope"
+          },
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version"
+          },
+          "last_update_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Update At"
+          },
+          "retention_until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Retention Until"
+          },
+          "latest_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Event Id"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale"
+          },
+          "deviation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emergency_handoff": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emergency Handoff"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trip_id",
+          "status",
+          "selected_route_id",
+          "planned_arrival",
+          "travel_mode",
+          "sharing_scope",
+          "consent_version",
+          "last_update_at",
+          "retention_until",
+          "stale"
+        ],
+        "title": "TripPollResponse"
+      },
+      "TripResponse": {
+        "properties": {
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "selected_route_id": {
+            "type": "string",
+            "title": "Selected Route Id"
+          },
+          "planned_arrival": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Planned Arrival"
+          },
+          "travel_mode": {
+            "type": "string",
+            "title": "Travel Mode"
+          },
+          "sharing_scope": {
+            "type": "string",
+            "title": "Sharing Scope"
+          },
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version"
+          },
+          "last_update_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Update At"
+          },
+          "retention_until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Retention Until"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trip_id",
+          "status",
+          "selected_route_id",
+          "planned_arrival",
+          "travel_mode",
+          "sharing_scope",
+          "consent_version",
+          "last_update_at",
+          "retention_until"
+        ],
+        "title": "TripResponse"
+      },
+      "TrustedContactCreateRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "contact_reference": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 3,
+            "title": "Contact Reference"
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Display Name"
+          },
+          "relationship_label": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Relationship Label"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "contact_reference",
+          "display_name",
+          "relationship_label"
+        ],
+        "title": "TrustedContactCreateRequest"
+      },
+      "TrustedContactResponse": {
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "title": "Contact Id"
+          },
+          "contact_reference": {
+            "type": "string",
+            "title": "Contact Reference"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "relationship_label": {
+            "type": "string",
+            "title": "Relationship Label"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "verification_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contact_id",
+          "contact_reference",
+          "display_name",
+          "relationship_label",
+          "verification_status",
+          "created_at"
+        ],
+        "title": "TrustedContactResponse"
+      },
+      "TrustedContactVerifyRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "verification_token": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Verification Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "verification_token"
+        ],
+        "title": "TrustedContactVerifyRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VariantRequest": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9_-]+$",
+            "title": "Key"
+          },
+          "weight": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Weight"
+          },
+          "config": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "weight"
+        ],
+        "title": "VariantRequest"
+      },
+      "VerifyRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "code"
+        ],
+        "title": "VerifyRequest"
+      }
+    }
+  }
+}

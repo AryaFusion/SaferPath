@@ -1,117 +1,123 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { currentAccount, onboardingStatus, revoke, verifyCode } from "../api/identity";
+import { currentAccount, onboardingStatus, revoke, updateProfile, verifyCode } from "../api/identity";
+import { session } from "../api/client";
+import type { Account, OnboardingStatus } from "../api/types";
+import type { Account, OnboardingStatus, ProfileUpdatePayload } from "../api/types";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  home?: string;
-  work?: string;
-  college?: string;
-  createdAt: string;
-}
+type AuthPhase="initializing"|"authenticated"|"unauthenticated"|"error";
+interface AuthContextValue { phase:AuthPhase; account:Account|null; onboarding:OnboardingStatus|null; error:string|null; isAuthenticated:boolean; currentUser:{name:string;email:string;phone:string;home?:string;work?:string;college?:string}|null; verify:(email:string,code:string)=>Promise<void>; refresh:()=>Promise<void>; logout:()=>Promise<void>; login:(email:string)=>void; register:(data:unknown)=>void; updateUser:(data:unknown)=>void }
+const AuthContext=createContext<AuthContextValue|undefined>(undefined);
+export function AuthProvider({children}:{children:ReactNode}){const [phase,setPhase]=useState<AuthPhase>("initializing");const [account,setAccount]=useState<Account|null>(null);const [onboarding,setOnboarding]=useState<OnboardingStatus|null>(null);const [error,setError]=useState<string|null>(null);const clear=()=>{session.clear();setAccount(null);setOnboarding(null);setPhase("unauthenticated")};const refresh=async()=>{if(!session.get()){clear();return}try{const [next,status]=await Promise.all([currentAccount(),onboardingStatus()]);setAccount(next);setOnboarding(status);setError(null);setPhase("authenticated")}catch(e){clear();setError(e instanceof Error?e.message:"Unable to restore your session.")}};useEffect(()=>{void refresh()
+},[]);const verify=async(email:string,code:string)=>{const result=await verifyCode(email,code);setAccount(result.account);await refresh()};const logout=async()=>{try{await revoke()}catch{void 0}finally{clear()}};const currentUser=account?{name:account.display_name||"SaferPath user",email:"Verified account",phone:""}:null;return <AuthContext.Provider value={{phase,account,onboarding,error,isAuthenticated:phase==="authenticated",currentUser,verify,refresh,logout,login:()=>undefined,register:()=>undefined,updateUser:()=>undefined}}>{children}</AuthContext.Provider>}
+export function useAuth(){const value=useContext(AuthContext);if(!value)throw new Error("useAuth must be used within AuthProvider");return value}
+export type AuthPhase = "initializing" | "authenticated" | "unauthenticated" | "error";
 
-interface AuthState {
+export interface AuthContextValue {
+  phase: AuthPhase;
+  account: Account | null;
+  onboarding: OnboardingStatus | null;
+  error: string | null;
   isAuthenticated: boolean;
-  currentUser: User | null;
+  currentUser: { name: string; email: string; phone?: string } | null;
+  verify: (email: string, code: string) => Promise<void>;
+  refresh: () => Promise<void>;
+  logout: () => Promise<void>;
+  updateUser: (data: ProfileUpdatePayload) => Promise<void>;
 }
 
-interface AuthContextType extends AuthState {
-  login: (email: string) => void;
-  register: (userData: Partial<User>) => void;
-  logout: () => void;
-  updateUser: (data: Partial<User>) => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authState, setAuthState] = useState<AuthState>({
-    isAuthenticated: false,
-    currentUser: null,
-  });
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [phase, setPhase] = useState<AuthPhase>("initializing");
+  const [account, setAccount] = useState<Account | null>(null);
+  const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const clear = () => {
+    session.clear();
+    setAccount(null);
+    setOnboarding(null);
+    setPhase("unauthenticated");
+  };
+
+  const refresh = async () => {
+    if (!session.get()) {
+      clear();
+      return;
+    }
+    try {
+      const [nextAccount, nextStatus] = await Promise.all([
+        currentAccount(),
+        onboardingStatus(),
+      ]);
+      setAccount(nextAccount);
+      setOnboarding(nextStatus);
+      setError(null);
+      setPhase("authenticated");
+    } catch (e) {
+      clear();
+      setError(e instanceof Error ? e.message : "Unable to restore your session.");
+    }
+  };
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("saferpath_auth");
-      if (stored) {
-        setAuthState(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Failed to parse saferpath_auth", e);
-    }
-    setIsInitialized(true);
+    void refresh();
   }, []);
 
-  useEffect(() => {
-    if (!isInitialized) return;
+  const verify = async (email: string, code: string) => {
+    const result = await verifyCode(email, code);
+    setAccount(result.account);
+    await refresh();
+  };
+
+  const logout = async () => {
     try {
-      localStorage.setItem("saferpath_auth", JSON.stringify(authState));
-    } catch (e) {
-      console.error("Failed to save saferpath_auth", e);
+      await revoke();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      clear();
     }
-  }, [authState, isInitialized]);
-
-  const login = (email: string) => {
-    // For prototype, we just mock the user data based on email if it doesn't match current
-    const user: User = authState.currentUser?.email === email ? authState.currentUser : {
-      id: Math.random().toString(36).substr(2, 9),
-      name: email.split("@")[0],
-      email: email,
-      phone: "",
-      createdAt: new Date().toISOString(),
-    };
-    
-    setAuthState({
-      isAuthenticated: true,
-      currentUser: user,
-    });
   };
 
-  const register = (userData: Partial<User>) => {
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: userData.name || "",
-      email: userData.email || "",
-      phone: userData.phone || "",
-      home: userData.home || "",
-      work: userData.work || "",
-      college: userData.college || "",
-      createdAt: new Date().toISOString(),
-    };
-    setAuthState({
-      isAuthenticated: true,
-      currentUser: newUser,
-    });
+  const updateUser = async (data: ProfileUpdatePayload) => {
+    await updateProfile(data);
+    await refresh();
   };
 
-  const logout = () => {
-    setAuthState({
-      isAuthenticated: false,
-      currentUser: null,
-    });
-  };
-
-  const updateUser = (data: Partial<User>) => {
-    setAuthState((prev) => ({
-      ...prev,
-      currentUser: prev.currentUser ? { ...prev.currentUser, ...data } : null,
-    }));
-  };
+  const currentUser = account
+    ? {
+        name: account.display_name || "SaferPath user",
+        email: "Verified account",
+      }
+    : null;
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        phase,
+        account,
+        onboarding,
+        error,
+        isAuthenticated: phase === "authenticated",
+        currentUser,
+        verify,
+        refresh,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+export function useAuth(): AuthContextValue {
+  const value = useContext(AuthContext);
+  if (!value) {
+    throw new Error("useAuth must be used within AuthProvider");
   }
-  return context;
+  return value;
 }
