@@ -112,8 +112,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Request-ID", "X-Analytics-Admin", "X-Subject-Reference"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Idempotency-Key", "X-Request-ID", "X-Analytics-Admin", "X-Subject-Reference"],
 )
 app.add_middleware(RequestSizeMiddleware)
 app.add_middleware(RequestContextMiddleware)

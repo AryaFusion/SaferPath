@@ -204,7 +204,6 @@ export default function RoutePlanner({
   useEffect(() => {
     const parsed = parseExternalTime(externalTravelTime);
     setTravelTimeLocal(parsed);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externalTravelTime]);
 
   function handleTimeChange(v: { date: string; time: string }) {

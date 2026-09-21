@@ -68,6 +68,7 @@ class Settings(BaseSettings):
     auth_secret: str = "development-only-auth-secret-change-me"
     auth_code_ttl_minutes: int = 10
     auth_code_max_attempts: int = 5
+    auth_code_resend_cooldown_seconds: int = 60
     session_ttl_hours: int = 24
     rate_limit_backend: str = "local"
     rate_limit_redis_url: str = ""
