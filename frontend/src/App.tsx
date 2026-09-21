@@ -6,6 +6,7 @@ import About from "./components/home/About";
 import HowItWorks from "./components/home/HowItWorks";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
+import TripsPage from "./pages/TripsPage";
 
 function LandingPage() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/trips" element={<TripsPage />} />
       </Routes>
     </BrowserRouter>
   );
